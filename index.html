@@ -470,7 +470,11 @@ footer {
   .hero-left { padding: 100px 28px 48px; }
   .hero-right { min-height: 50vw; height: auto; }
   .hero-right img { width: 100%; height: auto; }
-  .hero-decoration { left: 28px; }
+  .hero-decoration {
+    position: static;
+    margin-top: 24px;
+    left: auto; bottom: auto;
+  }
   .galina-section { grid-template-columns: 1fr; padding: 60px 28px; gap: 40px; }
   .galina-section::before { font-size: 120px; top: 20px; left: 20px; }
   .formats-section { padding: 60px 28px; }
