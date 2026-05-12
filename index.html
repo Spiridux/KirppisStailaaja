@@ -294,6 +294,26 @@ nav {
   padding: 100px 80px;
   background: var(--charcoal);
   position: relative; overflow: hidden;
+  display: grid;
+  grid-template-columns: 1fr 420px;
+  grid-template-rows: auto auto 1fr;
+  gap: 0 60px;
+  align-items: start;
+}
+.ai-section .section-header { grid-column: 1; }
+.ai-section .ai-intro { grid-column: 1; }
+.ai-section .ai-box { grid-column: 1; }
+.ai-section-img {
+  grid-column: 2;
+  grid-row: 1 / 4;
+  border-radius: 2px;
+  overflow: hidden;
+  align-self: stretch;
+}
+.ai-section-img img {
+  width: 100%; height: 100%;
+  object-fit: cover; object-position: center top;
+  display: block;
 }
 .ai-section::before {
   content: 'AI';
@@ -479,7 +499,14 @@ footer {
   .galina-section { grid-template-columns: 1fr; padding: 60px 28px; gap: 40px; }
   .galina-section::before { font-size: 120px; top: 20px; left: 20px; }
   .formats-section { padding: 60px 28px; }
-  .ai-section { padding: 60px 28px 120px; }
+  .ai-section {
+    padding: 60px 28px 120px;
+    grid-template-columns: 1fr;
+  }
+  .ai-section .section-header,
+  .ai-section .ai-intro,
+  .ai-section .ai-box { grid-column: 1; }
+  .ai-section-img { display: none; }
   .social-section { padding: 60px 28px; }
   footer { padding: 36px 28px; }
   .section-title { font-size: 28px; }
@@ -757,6 +784,9 @@ footer {
       <input type="file" id="aiImgInput" accept="image/*" onchange="valitseKuva(this)"/>
       <button class="ai-send" onclick="sendAI()">→</button>
     </div>
+  </div>
+  <div class="ai-section-img">
+    <img src="/nicola-portrait.jpg" alt="Nicola"/>
   </div>
 </section>
 
