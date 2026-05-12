@@ -85,14 +85,18 @@ nav {
   transition: color 0.2s;
 }
 .nav-links a:hover { color: var(--terracotta); }
-.nav-lang {
+.nav-lang-select {
   font-family: 'DM Mono', monospace;
-  font-size: 11px; letter-spacing: 0.10em;
-  background: none; border: 1px solid var(--sand);
+  font-size: 11px; letter-spacing: 0.08em;
+  background: var(--cream); border: 1px solid var(--sand);
   color: var(--smoke); padding: 4px 10px; border-radius: 20px;
-  cursor: pointer; transition: all 0.2s;
+  cursor: pointer; transition: all 0.2s; outline: none;
+  -webkit-appearance: none; appearance: none;
+  padding-right: 14px;
 }
-.nav-lang:hover { border-color: var(--terracotta); color: var(--terracotta); }
+.nav-lang-select:hover, .nav-lang-select:focus {
+  border-color: var(--terracotta); color: var(--terracotta);
+}
 .nav-hamburger { display: none; background: none; border: none; cursor: pointer; padding: 4px; }
 .nav-hamburger span { display: block; width: 22px; height: 1.5px; background: var(--bark); margin: 5px 0; transition: all 0.3s; }
 
@@ -489,7 +493,21 @@ footer {
     <a href="#formaatit" data-fi="Sisältö" data-en="Content">Sisältö</a>
     <a href="#ai" data-fi="AI-assistentti" data-en="AI assistant">AI-assistentti</a>
     <a href="#some" data-fi="Seuraa" data-en="Follow">Seuraa</a>
-    <button class="nav-lang" onclick="toggleLang()" id="langBtn">EN</button>
+    <select class="nav-lang-select" id="langSelect" onchange="vaihdaKieli(this.value)">
+      <option value="fi">🇫🇮 FI</option>
+      <option value="en" selected>🇬🇧 EN</option>
+      <option value="sv">🇸🇪 SV</option>
+      <option value="de">🇩🇪 DE</option>
+      <option value="fr">🇫🇷 FR</option>
+      <option value="it">🇮🇹 IT</option>
+      <option value="es">🇪🇸 ES</option>
+      <option value="ru">🇷🇺 RU</option>
+      <option value="pt">🇵🇹 PT</option>
+      <option value="nl">🇳🇱 NL</option>
+      <option value="ja">🇯🇵 JA</option>
+      <option value="zh">🇨🇳 ZH</option>
+      <option value="ar">🇸🇦 AR</option>
+    </select>
   </div>
   <button class="nav-hamburger" onclick="toggleMobileNav()" aria-label="Menu">
     <span></span><span></span><span></span>
@@ -703,40 +721,123 @@ footer {
 
 <script>
 // ── KIELENHALLINTA ──────────────────────────────────────────────────
-let siteLang = 'fi';
+let siteLang = 'en';
+const kaannosCache = {};
 
-function toggleLang() {
-  siteLang = siteLang === 'fi' ? 'en' : 'fi';
-  applyLang();
+const SIVUTEKSTIT = {
+  fi: {
+    'nav-galina':'Nicola','nav-sisalto':'Sisältö','nav-ai':'AI-assistentti','nav-seuraa':'Seuraa',
+    'hero-tag':'Kirppistelijä · Stailaaja · Taiteilija',
+    'hero-h1':'Löydä <em>oma tyylisi</em> kirppikseltä',
+    'hero-subtitle':'Nicola esittelee, yhdistelee ja stailaa löytöjä – persoonallisesti, lämpimästi, boheemisti.',
+    'hero-btn1':'Kysy tyyliä AI:lta','hero-btn2':'Lue lisää',
+    'hero-deco':'Tyyli on tarina, ei hinta.',
+    'galina-quote':'&ldquo;Kirppis ei ole säästämistä – se on löytämistä. Jokainen vaate kantaa tarinaa, ja minä autan sinua kirjoittamaan uuden.&rdquo;',
+    'tag-huovutus':'Huovutus','tag-boho':'Boho stailaus','tag-pilates':'Pilates-ohjaaja',
+    'tag-koreo':'Koreografi','tag-meikki':'Meikkaaja','tag-hieroja':'Hieroja','tag-tekstiili':'Tekstiilitaiteilija',
+    'sec-tag':'Sisältö','sec-title':'Mitä KirppisStailaaja tekee',
+    'fmt1-name':'Stailataan tuntematon','fmt1-desc':'Nicola vie vieraan kirppikselle, etsii kokonaisen asukokonaisuuden ja dokumentoi muutoksen.',
+    'fmt2-name':'Kirppis & kahvi','fmt2-desc':'Kevyt, spontaani formaatti – kierretään kirppiksiä, jutellaan löydöistä ja elämästä.',
+    'fmt3-name':'Miten yhdistää?','fmt3-desc':'Värit, kerrokset, boho + moderni – Nicola opettaa yhdistelyn taiteen.',
+    'fmt4-name':'Kirppismuodonmuutos','fmt4-desc':'Ennen ja jälkeen – löydetään ihmiselle uusi minä kirppiksen aarteista.',
+    'fmt5-name':'Vintage Stories','fmt5-desc':'Vanhojen vaatteiden tarinat, historia ja elämä niiden takana.',
+    'fmt6-name':'Huovuttajan silmä','fmt6-desc':'Tekstiilitaitelijan näkökulma materiaaleihin, tekstuureihin ja boheemiin estetiikkaan.',
+    'ai-title':'Tyyliassistentti','ai-intro':'Kysy mitä tahansa tyylistä, kirppislöydöistä tai yhdistelystä – millä kielellä vain.',
+    'ai-placeholder':'Kysy tyylistä...','ai-welcome':'Hei! Olen KirppisStailaajan AI-assistentti. Kysy minulta tyylistä, kirppislöydöistä tai vaatteiden yhdistelystä – autan mielelläni! 👗✨',
+    'social-tag':'Seuraa matkaa','social-title':'Löydä meidät somesta',
+    'footer-copy':'© 2025 Nicola · kirppisstailaaja.com','error-msg':'Yhteys katkesi – kokeile hetken päästä uudelleen.'
+  },
+  en: {
+    'nav-galina':'Nicola','nav-sisalto':'Content','nav-ai':'AI assistant','nav-seuraa':'Follow',
+    'hero-tag':'Thrift Stylist · Artist · Creator',
+    'hero-h1':'Find <em>your style</em> at the thrift store',
+    'hero-subtitle':'Nicola curates, combines and styles thrift finds – with personality, warmth and bohemian flair.',
+    'hero-btn1':'Ask the AI stylist','hero-btn2':'Learn more',
+    'hero-deco':'Style is a story, not a price tag.',
+    'galina-quote':'&ldquo;Thrifting isn't about saving money – it's about finding something. Every garment carries a story, and I help you write a new one.&rdquo;',
+    'tag-huovutus':'Felt art','tag-boho':'Boho styling','tag-pilates':'Pilates instructor',
+    'tag-koreo':'Choreographer','tag-meikki':'Make-up artist','tag-hieroja':'Massage therapist','tag-tekstiili':'Textile artist',
+    'sec-tag':'Content','sec-title':'What KirppisStailaaja does',
+    'fmt1-name':'Styling a Stranger','fmt1-desc':'Nicola takes a guest to the thrift store, builds a complete outfit and documents the transformation.',
+    'fmt2-name':'Thrift & Coffee','fmt2-desc':'Light, spontaneous format – browsing thrift stores, talking about finds and life.',
+    'fmt3-name':'How to Style It?','fmt3-desc':'Colors, layers, boho + modern – Nicola teaches the art of combination.',
+    'fmt4-name':'Thrift Transformation','fmt4-desc':'Before and after – finding someone's new self through thrift store treasures.',
+    'fmt5-name':'Vintage Stories','fmt5-desc':'The stories, history and life behind old garments.',
+    'fmt6-name':'The Felt Artist's Eye','fmt6-desc':'A textile artist's perspective on materials, textures and bohemian aesthetics.',
+    'ai-title':'Style Assistant','ai-intro':'Ask anything about style, thrift finds or combinations – in any language.',
+    'ai-placeholder':'Ask about style...','ai-welcome':'Hi! I'm the KirppisStailaaja AI assistant. Ask me anything about style, thrift finds or combinations – happy to help! 👗✨',
+    'social-tag':'Follow the journey','social-title':'Find us on social media',
+    'footer-copy':'© 2025 Nicola · kirppisstailaaja.com','error-msg':'Connection error – please try again.'
+  }
+};
+
+async function kaannaUI(lang) {
+  if (SIVUTEKSTIT[lang]) return SIVUTEKSTIT[lang];
+  if (kaannosCache[lang]) return kaannosCache[lang];
+  const langNames = {sv:'Swedish',de:'German',fr:'French',it:'Italian',es:'Spanish',ru:'Russian',pt:'Portuguese',nl:'Dutch',ja:'Japanese',zh:'Chinese',ar:'Arabic'};
+  const targetLang = langNames[lang] || 'English';
+  try {
+    const res = await fetch('/api/chat', {method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({model:'claude-sonnet-4-5', max_tokens:2000,
+        system: 'Translate the following JSON values to ' + targetLang + '. Keep HTML tags like <em> intact. Return ONLY valid JSON with same keys, no markdown, no explanation.',
+        messages:[{role:'user', content: JSON.stringify(SIVUTEKSTIT['en'])}]})});
+    const d = await res.json();
+    const txt = d.content.map(b=>b.type==='text'?b.text:'').join('');
+    const clean = txt.replace(/```json|```/g,'').trim();
+    const parsed = JSON.parse(clean);
+    kaannosCache[lang] = parsed;
+    return parsed;
+  } catch(e) { return SIVUTEKSTIT['en']; }
 }
 
-function applyLang() {
-  const key = 'data-' + siteLang;
-  document.querySelectorAll('[' + key + ']').forEach(el => {
-    const val = el.getAttribute(key);
-    if (!val) return;
-    if (el.tagName === 'INPUT') {
-      el.placeholder = el.getAttribute('data-placeholder-' + siteLang) || val;
-    } else {
-      el.innerHTML = val;
+async function vaihdaKieli(lang) {
+  siteLang = lang;
+  const sel = document.getElementById('langSelect');
+  if (sel) sel.disabled = true;
+  const tekstit = await kaannaUI(lang);
+  if (sel) sel.disabled = false;
+  applyLang(tekstit);
+}
+
+function applyLang(tekstit) {
+  const navLinks = document.querySelectorAll('.nav-links a');
+  ['nav-galina','nav-sisalto','nav-ai','nav-seuraa'].forEach((k,i) => {
+    if(navLinks[i] && tekstit[k]) navLinks[i].textContent = tekstit[k];
+  });
+  const keyMap = {
+    'hero-tag':'.hero-tag','hero-h1':'.hero-h1','hero-subtitle':'.hero-subtitle','hero-deco':'.hero-decoration',
+    'hero-btn1':'.btn-primary','hero-btn2':'.btn-outline','galina-quote':'.galina-quote',
+    'tag-huovutus':'.galina-tags span:nth-child(1)','tag-boho':'.galina-tags span:nth-child(2)',
+    'tag-pilates':'.galina-tags span:nth-child(3)','tag-koreo':'.galina-tags span:nth-child(4)',
+    'tag-meikki':'.galina-tags span:nth-child(5)','tag-hieroja':'.galina-tags span:nth-child(6)',
+    'tag-tekstiili':'.galina-tags span:nth-child(7)',
+    'sec-tag':'.formats-section .section-tag','sec-title':'.formats-section .section-title',
+    'ai-title':'.ai-section .section-title','ai-intro':'.ai-intro',
+    'social-tag':'.social-text .section-tag','social-title':'.social-text .section-title',
+    'footer-copy':'.footer-copy'
+  };
+  Object.entries(keyMap).forEach(([key,sel]) => {
+    const el = document.querySelector(sel);
+    if(el && tekstit[key]) el.innerHTML = tekstit[key];
+  });
+  [1,2,3,4,5,6].forEach(n => {
+    const cards = document.querySelectorAll('.format-card');
+    if(cards[n-1]) {
+      const nm = cards[n-1].querySelector('.format-name');
+      const dc = cards[n-1].querySelector('.format-desc');
+      if(nm && tekstit['fmt'+n+'-name']) nm.textContent = tekstit['fmt'+n+'-name'];
+      if(dc && tekstit['fmt'+n+'-desc']) dc.textContent = tekstit['fmt'+n+'-desc'];
     }
   });
-  document.getElementById('langBtn').textContent = siteLang === 'fi' ? 'EN' : 'FI';
-  document.querySelector('.ai-input').placeholder =
-    siteLang === 'fi' ? 'Kysy tyylistä...' : 'Ask about style...';
-  // Päivitä tervehdys
-  updateAiWelcome();
+  const inp = document.querySelector('.ai-input');
+  if(inp) inp.placeholder = tekstit['ai-placeholder'] || '';
+  const w = document.getElementById('aiWelcome');
+  if(w) w.textContent = tekstit['ai-welcome'] || '';
 }
 
-function updateAiWelcome() {
-  const w = document.getElementById('aiWelcome');
-  if (!w) return;
-  if (siteLang === 'fi') {
-    w.textContent = 'Hei! Olen KirppisStailaajan AI-assistentti. Kysy minulta tyylistä, kirppislöydöistä tai vaatteiden yhdistelystä – autan mielelläni! 👗✨';
-  } else {
-    w.textContent = 'Hi! I\'m the KirppisStailaaja AI assistant. Ask me anything about style, thrift finds or outfit combinations – happy to help! 👗✨';
-  }
-}
+function updateAiWelcome() {}
+
+window.addEventListener('DOMContentLoaded', () => { applyLang(SIVUTEKSTIT['en']); });
 
 // ── MOBIILINAVIGAATIO ───────────────────────────────────────────────
 function toggleMobileNav() {
@@ -858,7 +959,7 @@ async function askAI(q) {
     aiHistory.push({ role: 'assistant', content: text });
   } catch (e) {
     removeThinking();
-    addMsg(siteLang === 'fi' ? 'Yhteys katkesi – kokeile hetken päästä uudelleen.' : 'Connection error – please try again.', false);
+    const errTexts = SIVUTEKSTIT[siteLang]||SIVUTEKSTIT['en']; addMsg(errTexts['error-msg']||'Connection error.', false);
   }
 }
 
