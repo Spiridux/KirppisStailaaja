@@ -525,6 +525,15 @@ footer {
 @media (max-width: 900px) {
   .behold-section { padding: 60px 28px; }
 }
+
+/* ── BEHOLD HERO ── */
+.hero-behold {
+  overflow: hidden;
+  display: flex; align-items: flex-start;
+}
+.hero-behold behold-widget {
+  width: 100%;
+}
 </style>
 </head>
 <body>
@@ -579,8 +588,8 @@ footer {
       Jokainen löytö kertoo tarinan.
     </div>
   </div>
-  <div class="hero-right">
-    <img src="/nicola-portrait.jpg" alt="Nicola KirppisStailaaja" />
+  <div class="hero-right hero-behold">
+    <behold-widget feed-id="d1dAMYYQZXT9nlf8eUrZ"></behold-widget>
   </div>
 </section>
 
@@ -668,20 +677,6 @@ footer {
 </section>
 
 
-<!-- INSTAGRAM FEED -->
-<section class="behold-section reveal">
-  <div class="behold-header">
-    <span class="section-tag" data-fi="Instagram" data-en="Instagram">Instagram</span>
-    <h2 class="section-title" data-fi="Seuraa matkaa somessa" data-en="Follow the journey">Seuraa matkaa somessa</h2>
-  </div>
-  <behold-widget feed-id="d1dAMYYQZXT9nlf8eUrZ"></behold-widget>
-  <script>
-    (() => {
-      const d=document,s=d.createElement("script");s.type="module";
-      s.src="https://w.behold.so/widget.js";d.head.append(s);
-    })();
-  </script>
-</section>
 
 <!-- AI ASSISTENTTI -->
 <section class="ai-section reveal" id="ai">
