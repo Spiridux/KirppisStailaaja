@@ -494,8 +494,8 @@ footer {
     <a href="#ai" data-fi="AI-assistentti" data-en="AI assistant">AI-assistentti</a>
     <a href="#some" data-fi="Seuraa" data-en="Follow">Seuraa</a>
     <select class="nav-lang-select" id="langSelect" onchange="vaihdaKieli(this.value)">
-      <option value="fi">🇫🇮 FI</option>
-      <option value="en" selected>🇬🇧 EN</option>
+      <option value="fi" selected>🇫🇮 FI</option>
+      <option value="en">🇬🇧 EN</option>
       <option value="sv">🇸🇪 SV</option>
       <option value="de">🇩🇪 DE</option>
       <option value="fr">🇫🇷 FR</option>
@@ -721,7 +721,7 @@ footer {
 
 <script>
 // ── KIELENHALLINTA ──────────────────────────────────────────────────
-let siteLang = 'en';
+let siteLang = 'fi';
 const kaannosCache = {};
 
 const SIVUTEKSTIT = {
@@ -765,80 +765,117 @@ const SIVUTEKSTIT = {
     'fmt5-name':'Vintage Stories','fmt5-desc':'The stories, history and life behind old garments.',
     'fmt6-name':'The Felt Artist Eye','fmt6-desc':'A textile artist perspective on materials, textures and bohemian aesthetics.',
     'ai-title':'Style Assistant','ai-intro':'Ask anything about style, thrift finds or combinations – in any language.',
-    'ai-placeholder':'Ask about style...','ai-welcome':'Hi! I am the KirppisStailaaja AI assistant. Ask me anything about style, thrift finds or combinations – happy to help! 👗✨',
+    'ai-placeholder':'Ask about style...','ai-welcome':'Hi! I am the KirppisStailaaja AI assistant. Ask me anything about style, thrift finds or combinations – happy to help! 👗',
     'social-tag':'Follow the journey','social-title':'Find us on social media',
     'footer-copy':'© 2025 Nicola · kirppisstailaaja.com','error-msg':'Connection error – please try again.'
   }
 };
 
+// Käännetään muut kielet API:lla
 async function kaannaUI(lang) {
   if (SIVUTEKSTIT[lang]) return SIVUTEKSTIT[lang];
   if (kaannosCache[lang]) return kaannosCache[lang];
-  const langNames = {sv:'Swedish',de:'German',fr:'French',it:'Italian',es:'Spanish',ru:'Russian',pt:'Portuguese',nl:'Dutch',ja:'Japanese',zh:'Chinese',ar:'Arabic'};
+  const langNames = {sv:'Swedish',de:'German',fr:'French',it:'Italian',es:'Spanish',
+    ru:'Russian',pt:'Portuguese',nl:'Dutch',ja:'Japanese',zh:'Chinese',ar:'Arabic'};
   const targetLang = langNames[lang] || 'English';
   try {
-    const res = await fetch('/api/chat', {method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({model:'claude-sonnet-4-5', max_tokens:2000,
-        system: 'Translate the following JSON values to ' + targetLang + '. Keep HTML tags like <em> intact. Return ONLY valid JSON with same keys, no markdown, no explanation.',
-        messages:[{role:'user', content: JSON.stringify(SIVUTEKSTIT['en'])}]})});
+    const res = await fetch('/api/chat', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        model:'claude-sonnet-4-5',
+        max_tokens:2000,
+        system:'Translate all JSON string values to ' + targetLang + '. Keep HTML tags like <em> unchanged. Return ONLY a valid JSON object with identical keys. No markdown, no explanation, no backticks.',
+        messages:[{role:'user', content:JSON.stringify(SIVUTEKSTIT['en'])}]
+      })
+    });
     const d = await res.json();
-    const txt = d.content.map(b=>b.type==='text'?b.text:'').join('');
-    const clean = txt.replace(/```json|```/g,'').trim();
+    const txt = d.content.map(function(b){return b.type==='text'?b.text:'';}).join('');
+    const clean = txt.replace(/```json/g,'').replace(/```/g,'').trim();
     const parsed = JSON.parse(clean);
     kaannosCache[lang] = parsed;
     return parsed;
-  } catch(e) { return SIVUTEKSTIT['en']; }
+  } catch(e) {
+    return SIVUTEKSTIT['en'];
+  }
 }
 
-async function vaihdaKieli(lang) {
-  siteLang = lang;
-  const sel = document.getElementById('langSelect');
-  if (sel) sel.disabled = true;
-  const tekstit = await kaannaUI(lang);
-  if (sel) sel.disabled = false;
-  applyLang(tekstit);
-}
-
+// Soveltaa käännökset DOM:iin
 function applyLang(tekstit) {
+  if (!tekstit) return;
+  // Navigaatio
   const navLinks = document.querySelectorAll('.nav-links a');
-  ['nav-galina','nav-sisalto','nav-ai','nav-seuraa'].forEach((k,i) => {
-    if(navLinks[i] && tekstit[k]) navLinks[i].textContent = tekstit[k];
+  var navKeys = ['nav-galina','nav-sisalto','nav-ai','nav-seuraa'];
+  navLinks.forEach(function(a, i) {
+    if (navKeys[i] && tekstit[navKeys[i]]) a.textContent = tekstit[navKeys[i]];
   });
-  const keyMap = {
-    'hero-tag':'.hero-tag','hero-h1':'.hero-h1','hero-subtitle':'.hero-subtitle','hero-deco':'.hero-decoration',
-    'hero-btn1':'.btn-primary','hero-btn2':'.btn-outline','galina-quote':'.galina-quote',
-    'tag-huovutus':'.galina-tags span:nth-child(1)','tag-boho':'.galina-tags span:nth-child(2)',
-    'tag-pilates':'.galina-tags span:nth-child(3)','tag-koreo':'.galina-tags span:nth-child(4)',
-    'tag-meikki':'.galina-tags span:nth-child(5)','tag-hieroja':'.galina-tags span:nth-child(6)',
+  // Kaikki muut elementit
+  var keyMap = {
+    'hero-tag':'.hero-tag',
+    'hero-h1':'.hero-h1',
+    'hero-subtitle':'.hero-subtitle',
+    'hero-deco':'.hero-decoration',
+    'hero-btn1':'.btn-primary',
+    'hero-btn2':'.btn-outline',
+    'galina-quote':'.galina-quote',
+    'tag-huovutus':'.galina-tags span:nth-child(1)',
+    'tag-boho':'.galina-tags span:nth-child(2)',
+    'tag-pilates':'.galina-tags span:nth-child(3)',
+    'tag-koreo':'.galina-tags span:nth-child(4)',
+    'tag-meikki':'.galina-tags span:nth-child(5)',
+    'tag-hieroja':'.galina-tags span:nth-child(6)',
     'tag-tekstiili':'.galina-tags span:nth-child(7)',
-    'sec-tag':'.formats-section .section-tag','sec-title':'.formats-section .section-title',
-    'ai-title':'.ai-section .section-title','ai-intro':'.ai-intro',
-    'social-tag':'.social-text .section-tag','social-title':'.social-text .section-title',
+    'sec-tag':'.formats-section .section-tag',
+    'sec-title':'.formats-section .section-title',
+    'ai-title':'.ai-section .section-title',
+    'ai-intro':'.ai-intro',
+    'social-tag':'.social-text .section-tag',
+    'social-title':'.social-text .section-title',
     'footer-copy':'.footer-copy'
   };
-  Object.entries(keyMap).forEach(([key,sel]) => {
-    const el = document.querySelector(sel);
-    if(el && tekstit[key]) el.innerHTML = tekstit[key];
+  Object.keys(keyMap).forEach(function(key) {
+    var el = document.querySelector(keyMap[key]);
+    if (el && tekstit[key]) el.innerHTML = tekstit[key];
   });
-  [1,2,3,4,5,6].forEach(n => {
-    const cards = document.querySelectorAll('.format-card');
-    if(cards[n-1]) {
-      const nm = cards[n-1].querySelector('.format-name');
-      const dc = cards[n-1].querySelector('.format-desc');
-      if(nm && tekstit['fmt'+n+'-name']) nm.textContent = tekstit['fmt'+n+'-name'];
-      if(dc && tekstit['fmt'+n+'-desc']) dc.textContent = tekstit['fmt'+n+'-desc'];
+  // Format-kortit
+  var cards = document.querySelectorAll('.format-card');
+  for (var n = 1; n <= 6; n++) {
+    if (cards[n-1]) {
+      var nm = cards[n-1].querySelector('.format-name');
+      var dc = cards[n-1].querySelector('.format-desc');
+      if (nm && tekstit['fmt'+n+'-name']) nm.textContent = tekstit['fmt'+n+'-name'];
+      if (dc && tekstit['fmt'+n+'-desc']) dc.textContent = tekstit['fmt'+n+'-desc'];
     }
-  });
-  const inp = document.querySelector('.ai-input');
-  if(inp) inp.placeholder = tekstit['ai-placeholder'] || '';
-  const w = document.getElementById('aiWelcome');
-  if(w) w.textContent = tekstit['ai-welcome'] || '';
+  }
+  // AI
+  var inp = document.querySelector('.ai-input');
+  if (inp && tekstit['ai-placeholder']) inp.placeholder = tekstit['ai-placeholder'];
+  var w = document.getElementById('aiWelcome');
+  if (w && tekstit['ai-welcome']) w.textContent = tekstit['ai-welcome'];
+}
+
+// Kielivalinta — kutsutaan kun käyttäjä valitsee kielen
+function vaihdaKieli(lang) {
+  siteLang = lang;
+  var sel = document.getElementById('langSelect');
+  if (SIVUTEKSTIT[lang] || kaannosCache[lang]) {
+    // Valmiiksi käännetty — sovella heti
+    var tekstit = SIVUTEKSTIT[lang] || kaannosCache[lang];
+    applyLang(tekstit);
+  } else {
+    // Haetaan käännös API:lta
+    if (sel) sel.disabled = true;
+    kaannaUI(lang).then(function(tekstit) {
+      if (sel) sel.disabled = false;
+      applyLang(tekstit);
+    }).catch(function() {
+      if (sel) sel.disabled = false;
+      applyLang(SIVUTEKSTIT['en']);
+    });
+  }
 }
 
 function updateAiWelcome() {}
-
-window.addEventListener('DOMContentLoaded', () => { applyLang(SIVUTEKSTIT['en']); });
-
 // ── MOBIILINAVIGAATIO ───────────────────────────────────────────────
 function toggleMobileNav() {
   const links = document.querySelector('.nav-links');
@@ -968,6 +1005,9 @@ const observer = new IntersectionObserver(entries => {
   entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
 }, { threshold: 0.12 });
 document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+// Alustetaan FI-kielellä heti
+document.addEventListener('DOMContentLoaded', function() { applyLang(SIVUTEKSTIT['fi']); });
 </script>
 </body>
 </html>
