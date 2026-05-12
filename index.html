@@ -724,107 +724,99 @@ footer {
 let siteLang = 'fi';
 const kaannosCache = {};
 
-// HTML:ssä on jo data-fi ja data-en attribuutit — käytetään niitä suoraan
+// FI ja EN: käytetään data-fi / data-en attribuutteja suoraan
 function applyDataAttrs(lang) {
-  // Kaikki elementit joilla on data-{lang} attribuutti
   var attr = 'data-' + lang;
   document.querySelectorAll('[' + attr + ']').forEach(function(el) {
     var val = el.getAttribute(attr);
     if (val) el.innerHTML = val;
   });
-  // AI-placeholder erikseen
   var inp = document.querySelector('.ai-input');
-  if (inp) {
-    inp.placeholder = lang === 'fi' ? 'Kysy tyylistä...' : 'Ask about style...';
-  }
-  // AI-tervehdys
+  if (inp) inp.placeholder = lang === 'fi' ? 'Kysy tyylistä...' : 'Ask about style...';
   var w = document.getElementById('aiWelcome');
-  if (w) {
-    w.textContent = lang === 'fi'
-      ? 'Hei! Olen KirppisStailaajan AI-assistentti. Kysy tyylistä, kirppislöydöistä tai yhdistelystä – autan mielelläni! 👗✨'
-      : 'Hi! I am the KirppisStailaaja AI assistant. Ask me anything about style, thrift finds or combinations! 👗✨';
-  }
+  if (w) w.textContent = lang === 'fi'
+    ? 'Hei! Olen KirppisStailaajan AI-assistentti. Kysy tyylistä, kirppislöydöistä tai yhdistelystä! 👗✨'
+    : 'Hi! I am the KirppisStailaaja AI assistant. Ask me anything about style or thrift finds! 👗✨';
 }
 
-// Käännetään API:lla muille kielille
-async function applyTranslated(lang) {
-  if (kaannosCache[lang]) {
-    applyTranslations(kaannosCache[lang], lang);
-    return;
-  }
-  var langNames = {sv:'Swedish',de:'German',fr:'French',it:'Italian',es:'Spanish',
-    ru:'Russian',pt:'Portuguese',nl:'Dutch',ja:'Japanese',zh:'Chinese',ar:'Arabic'};
-  var targetLang = langNames[lang] || 'English';
-
-  // Kerätään kaikki käännettävät tekstit data-en-attribuuteista
-  var texts = {};
-  document.querySelectorAll('[data-en]').forEach(function(el) {
-    var key = el.className.split(' ')[0] + '_' + Array.from(el.parentNode.children).indexOf(el);
-    texts[key] = el.getAttribute('data-en');
-    el.setAttribute('data-key', key);
-  });
-
-  try {
-    var res = await fetch('/api/chat', {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-5',
-        max_tokens: 2000,
-        system: 'You are a translator. Translate all JSON string values from English to ' + targetLang + '. Keep any HTML tags like <em> unchanged. Return ONLY a valid JSON object with the same keys. No markdown, no code blocks, no explanation.',
-        messages: [{role:'user', content: JSON.stringify(texts)}]
-      })
-    });
-    var d = await res.json();
-    var txt = d.content.map(function(b){return b.type==='text'?b.text:'';}).join('');
-        var clean = txt.trim();
-    var tickIdx = clean.indexOf('```');
-    if (tickIdx === 0) { clean = clean.substring(clean.indexOf('\n') + 1); }
-    var lastTick = clean.lastIndexOf('```');
-    if (lastTick > 0) { clean = clean.substring(0, lastTick); }
-    clean = clean.trim();
-    var parsed = JSON.parse(clean);
-    kaannosCache[lang] = parsed;
-    applyTranslations(parsed, lang);
-  } catch(e) {
-    // Fallback englantiin
-    applyDataAttrs('en');
-  }
-}
-
-function applyTranslations(translations, lang) {
-  document.querySelectorAll('[data-key]').forEach(function(el) {
-    var key = el.getAttribute('data-key');
-    if (translations[key]) el.innerHTML = translations[key];
-  });
-  var inp = document.querySelector('.ai-input');
-  if (inp) inp.placeholder = 'Ask about style... (' + lang.toUpperCase() + ')';
-  var w = document.getElementById('aiWelcome');
-  if (w) w.textContent = 'Hi! I am the KirppisStailaaja style assistant. Ask me anything! 👗✨';
-}
-
-function showLangLoading(show) {
-  var sel = document.getElementById('langSelect');
-  if (!sel) return;
-  sel.disabled = show;
-  sel.style.opacity = show ? '0.5' : '1';
-}
-
+// Muut kielet: käännetään API:lla
 function vaihdaKieli(lang) {
   siteLang = lang;
   if (lang === 'fi' || lang === 'en') {
     applyDataAttrs(lang);
-  } else {
-    showLangLoading(true);
-    applyTranslated(lang).finally(function() {
-      showLangLoading(false);
-    });
+    return;
   }
+  // Näytetään loading
+  var sel = document.getElementById('langSelect');
+  if (sel) { sel.disabled = true; sel.style.opacity = '0.4'; }
+
+  // Kerätään EN-tekstit käännettäväksi
+  var texts = {};
+  var els = [];
+  document.querySelectorAll('[data-en]').forEach(function(el, i) {
+    var key = 'k' + i;
+    texts[key] = el.getAttribute('data-en');
+    els.push({key: key, el: el});
+  });
+
+  var langNames = {sv:'Swedish',de:'German',fr:'French',it:'Italian',es:'Spanish',
+    ru:'Russian',pt:'Portuguese',nl:'Dutch',ja:'Japanese',zh:'Chinese',ar:'Arabic'};
+  var targetLang = langNames[lang] || 'English';
+
+  // Jos cachessa jo on
+  if (kaannosCache[lang]) {
+    applyTranslations(kaannosCache[lang], els);
+    if (sel) { sel.disabled = false; sel.style.opacity = '1'; }
+    return;
+  }
+
+  fetch('/api/chat', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-5',
+      max_tokens: 2000,
+      system: 'Translate all JSON string values from English to ' + targetLang + '. Preserve HTML tags like <em>. Return ONLY a valid JSON object with identical keys. No markdown fences, no explanation.',
+      messages: [{role:'user', content: JSON.stringify(texts)}]
+    })
+  })
+  .then(function(res) { return res.json(); })
+  .then(function(d) {
+    var txt = d.content.map(function(b){ return b.type === 'text' ? b.text : ''; }).join('').trim();
+    // Poistetaan mahdolliset markdown-koodiblokki-merkit
+    if (txt.charAt(0) === '{') {
+      // OK, suoraan JSON
+    } else {
+      var start = txt.indexOf('{');
+      var end = txt.lastIndexOf('}');
+      if (start >= 0 && end > start) txt = txt.substring(start, end + 1);
+    }
+    var parsed = JSON.parse(txt);
+    kaannosCache[lang] = parsed;
+    applyTranslations(parsed, els);
+  })
+  .catch(function(e) {
+    // Virhe — fallback EN
+    applyDataAttrs('en');
+  })
+  .finally(function() {
+    if (sel) { sel.disabled = false; sel.style.opacity = '1'; }
+  });
+}
+
+function applyTranslations(translations, els) {
+  els.forEach(function(item) {
+    var val = translations[item.key];
+    if (val) item.el.innerHTML = val;
+  });
+  var inp = document.querySelector('.ai-input');
+  if (inp) inp.placeholder = 'Ask about style...';
+  var w = document.getElementById('aiWelcome');
+  if (w) w.textContent = 'Hi! I am the KirppisStailaaja style assistant. Ask me anything! 👗✨';
 }
 
 function updateAiWelcome() {}
 
-// Sivun lataus — FI oletuksena
 document.addEventListener('DOMContentLoaded', function() {
   applyDataAttrs('fi');
 });
