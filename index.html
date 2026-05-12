@@ -510,10 +510,13 @@ footer {
     grid-column: 1;
     grid-row: auto;
     margin-top: 40px;
-    height: 60vw;
-    max-height: 400px;
+    height: auto;
   }
-  .ai-section-img img { object-position: center 20%; }
+  .ai-section-img img {
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+  }
   .social-section { padding: 60px 28px; }
   footer { padding: 36px 28px; }
   .section-title { font-size: 28px; }
