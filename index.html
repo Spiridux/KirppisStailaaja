@@ -722,106 +722,22 @@ footer {
 <script>
 // ── KIELENHALLINTA ──────────────────────────────────────────────────
 let siteLang = 'fi';
-const kaannosCache = {};
 
-function applyDataAttrs(lang) {
-  var attr = 'data-' + lang;
-  document.querySelectorAll('[' + attr + ']').forEach(function(el) {
-    var val = el.getAttribute(attr);
-    if (val) el.innerHTML = val;
-  });
-  var inp = document.querySelector('.ai-input');
-  if (inp) inp.placeholder = lang === 'fi' ? 'Kysy tyylistä...' : 'Ask about style...';
-  var w = document.getElementById('aiWelcome');
-  if (w) w.textContent = lang === 'fi'
-    ? 'Hei! Olen KirppisStailaajan AI-assistentti. Kysy tyylistä tai kirppislöydöistä! 👗✨'
-    : 'Hi! I am the KirppisStailaaja AI assistant. Ask about style or flea market finds! 👗✨';
-}
+// Kaikki käännökset valmiina — ei API-kutsua
+const TEKSTIT = {"fi": {"hero-tag": "Kirppistelijä · Stailaaja · Taiteilija", "hero-h1": "Löydä <em>oma tyylisi</em> kirppikseltä", "hero-subtitle": "Nicola esittelee, yhdistelee ja stailaa kirppislöytöjä – persoonallisesti, lämpimästi, boheemisti.", "hero-btn1": "Kysy tyyliä AI:lta", "hero-btn2": "Lue lisää", "hero-deco": "Tyyli on tarina, ei hinta.", "galina-quote": "Kirppis ei ole säästämistä – se on löytämistä. Jokainen vaate kantaa tarinaa, ja minä autan sinua kirjoittamaan uuden.", "sec-tag": "Sisältö", "sec-title": "Mitä KirppisStailaaja tekee", "fmt1-name": "Stailataan tuntematon", "fmt1-desc": "Nicola vie vieraan kirppikselle, etsii kokonaisen asukokonaisuuden ja dokumentoi muutoksen.", "fmt2-name": "Kirppis & kahvi", "fmt2-desc": "Kevyt, spontaani formaatti – kierretään kirppiksiä, jutellaan löydöistä ja elämästä.", "fmt3-name": "Miten yhdistää?", "fmt3-desc": "Värit, kerrokset, boho + moderni – Nicola opettaa yhdistelyn taiteen.", "fmt4-name": "Kirppismuodonmuutos", "fmt4-desc": "Ennen ja jälkeen – löydetään ihmiselle uusi minä kirppiksen aarteista.", "fmt5-name": "Vintage Stories", "fmt5-desc": "Vanhojen vaatteiden tarinat, historia ja elämä niiden takana.", "fmt6-name": "Huovuttajan silmä", "fmt6-desc": "Tekstiilitaitelijan näkökulma materiaaleihin, tekstuureihin ja boheemiin estetiikkaan.", "ai-title": "Tyyliassistentti", "ai-intro": "Kysy mitä tahansa tyylistä, kirppislöydöistä tai yhdistelystä – millä kielellä vain.", "ai-placeholder": "Kysy tyylistä...", "ai-welcome": "Hei! Olen KirppisStailaajan AI-assistentti. Kysy tyylistä tai kirppislöydöistä – autan mielelläni! 👗✨", "social-tag": "Seuraa matkaa", "social-title": "Löydä meidät somesta", "nav-galina": "Nicola", "nav-sisalto": "Sisältö", "nav-ai": "AI-assistentti", "nav-seuraa": "Seuraa"}, "en": {"hero-tag": "Flea Market Stylist · Artist · Creator", "hero-h1": "Find <em>your style</em> at the flea market", "hero-subtitle": "Nicola curates, combines and styles flea market finds – with personality, warmth and bohemian flair.", "hero-btn1": "Ask the AI stylist", "hero-btn2": "Learn more", "hero-deco": "Style is a story, not a price tag.", "galina-quote": "Flea market shopping is not about saving money – it is about finding something. Every garment carries a story, and I help you write a new one.", "sec-tag": "Content", "sec-title": "What KirppisStailaaja does", "fmt1-name": "Styling a Stranger", "fmt1-desc": "Nicola takes a guest to the flea market, builds a complete outfit and documents the transformation.", "fmt2-name": "Flea Market & Coffee", "fmt2-desc": "Light, spontaneous format – browsing flea markets, talking about finds and life.", "fmt3-name": "How to Style It?", "fmt3-desc": "Colors, layers, boho + modern – Nicola teaches the art of combination.", "fmt4-name": "Flea Market Transformation", "fmt4-desc": "Before and after – finding a new self through flea market treasures.", "fmt5-name": "Vintage Stories", "fmt5-desc": "The stories, history and life behind old garments.", "fmt6-name": "The Felt Artist Eye", "fmt6-desc": "A textile artist perspective on materials, textures and bohemian aesthetics.", "ai-title": "Style Assistant", "ai-intro": "Ask anything about style, flea market finds or combinations – in any language.", "ai-placeholder": "Ask about style...", "ai-welcome": "Hi! I am the KirppisStailaaja AI assistant. Ask about style or flea market finds! 👗✨", "social-tag": "Follow the journey", "social-title": "Find us on social media", "nav-galina": "Nicola", "nav-sisalto": "Content", "nav-ai": "AI assistant", "nav-seuraa": "Follow"}, "sv": {"hero-tag": "Loppisfantasten · Stilist · Konstnär", "hero-h1": "Hitta <em>din stil</em> på loppisen", "hero-subtitle": "Nicola hittar, kombinerar och stylar loppisfynd – personligt, varmt och bohemiskt.", "hero-btn1": "Fråga AI-stylisten", "hero-btn2": "Läs mer", "hero-deco": "Stil är en berättelse, inte ett pris.", "galina-quote": "Loppis handlar inte om att spara pengar – det handlar om att hitta något. Varje plagg bär på en historia, och jag hjälper dig skriva en ny.", "sec-tag": "Innehåll", "sec-title": "Vad KirppisStailaaja gör", "fmt1-name": "Styla en okänd", "fmt1-desc": "Nicola tar med en gäst till loppisen, hittar en hel outfit och dokumenterar förvandlingen.", "fmt2-name": "Loppis & kaffe", "fmt2-desc": "Lätt, spontant format – vi bläddrar på loppisar och pratar om fynd och livet.", "fmt3-name": "Hur kombinerar man?", "fmt3-desc": "Färger, lager, boho + modernt – Nicola lär ut konsten att kombinera.", "fmt4-name": "Loppisförvandling", "fmt4-desc": "Före och efter – hitta ett nytt jag bland loppisens skatter.", "fmt5-name": "Vintage Stories", "fmt5-desc": "Historierna, bakgrunden och livet bakom gamla kläder.", "fmt6-name": "Filtarens öga", "fmt6-desc": "En textilkonstnärs perspektiv på material, texturer och bohemisk estetik.", "ai-title": "Stilassistent", "ai-intro": "Fråga vad som helst om stil, loppisfynd eller kombinationer – på vilket språk som helst.", "ai-placeholder": "Fråga om stil...", "ai-welcome": "Hej! Jag är KirppisStailaaja AI-assistent. Fråga om stil eller loppisfynd! 👗✨", "social-tag": "Följ resan", "social-title": "Hitta oss i sociala medier", "nav-galina": "Nicola", "nav-sisalto": "Innehåll", "nav-ai": "AI-assistent", "nav-seuraa": "Följ"}, "de": {"hero-tag": "Flohmarkt-Stylistin · Künstlerin · Kreative", "hero-h1": "Finde <em>deinen Stil</em> auf dem Flohmarkt", "hero-subtitle": "Nicola findet, kombiniert und stylt Flohmarktfunde – persönlich, warm und bohemisch.", "hero-btn1": "KI-Stylistin fragen", "hero-btn2": "Mehr erfahren", "hero-deco": "Stil ist eine Geschichte, kein Preisschild.", "galina-quote": "Flohmarktbummel geht nicht ums Sparen – es geht ums Finden. Jedes Kleidungsstück trägt eine Geschichte, und ich helfe dir, eine neue zu schreiben.", "sec-tag": "Inhalt", "sec-title": "Was KirppisStailaaja macht", "fmt1-name": "Eine Fremde stylen", "fmt1-desc": "Nicola nimmt einen Gast mit zum Flohmarkt, stellt ein komplettes Outfit zusammen und dokumentiert die Verwandlung.", "fmt2-name": "Flohmarkt & Kaffee", "fmt2-desc": "Leichtes, spontanes Format – Flohmärkte erkunden, über Funde und das Leben plaudern.", "fmt3-name": "Wie kombiniert man?", "fmt3-desc": "Farben, Schichten, Boho + Modern – Nicola lehrt die Kunst der Kombination.", "fmt4-name": "Flohmarkt-Verwandlung", "fmt4-desc": "Vorher und nachher – ein neues Ich durch Flohmarktschätze finden.", "fmt5-name": "Vintage Stories", "fmt5-desc": "Die Geschichten, die Geschichte und das Leben hinter alten Kleidungsstücken.", "fmt6-name": "Das Auge der Filzkünstlerin", "fmt6-desc": "Eine Textilkünstlerin über Materialien, Texturen und böhmische Ästhetik.", "ai-title": "Stil-Assistent", "ai-intro": "Frag alles über Stil, Flohmarktfunde oder Kombinationen – in jeder Sprache.", "ai-placeholder": "Nach Stil fragen...", "ai-welcome": "Hallo! Ich bin der KirppisStailaaja KI-Assistent. Frag mich über Stil oder Flohmarktfunde! 👗✨", "social-tag": "Folge der Reise", "social-title": "Finde uns in sozialen Medien", "nav-galina": "Nicola", "nav-sisalto": "Inhalt", "nav-ai": "KI-Assistent", "nav-seuraa": "Folgen"}, "fr": {"hero-tag": "Styliste de brocante · Artiste · Créatrice", "hero-h1": "Trouvez <em>votre style</em> au marché aux puces", "hero-subtitle": "Nicola déniche, combine et stylise des trouvailles de brocante – avec personnalité, chaleur et flair bohème.", "hero-btn1": "Demander à l'IA styliste", "hero-btn2": "En savoir plus", "hero-deco": "Le style est une histoire, pas un prix.", "galina-quote": "La brocante ne concerne pas les économies – c'est une question de découverte. Chaque vêtement porte une histoire, et je vous aide à en écrire une nouvelle.", "sec-tag": "Contenu", "sec-title": "Ce que fait KirppisStailaaja", "fmt1-name": "Styliser une inconnue", "fmt1-desc": "Nicola emmène une invitée au marché aux puces, crée une tenue complète et documente la transformation.", "fmt2-name": "Brocante & café", "fmt2-desc": "Format léger et spontané – explorer les marchés aux puces, parler de trouvailles et de vie.", "fmt3-name": "Comment combiner?", "fmt3-desc": "Couleurs, couches, boho + moderne – Nicola enseigne l'art de la combinaison.", "fmt4-name": "Transformation brocante", "fmt4-desc": "Avant et après – trouver un nouveau soi parmi les trésors du marché aux puces.", "fmt5-name": "Vintage Stories", "fmt5-desc": "Les histoires, l'histoire et la vie derrière les vieux vêtements.", "fmt6-name": "L'oeil de l'artiste feutre", "fmt6-desc": "Une artiste textile sur les matériaux, les textures et l'esthétique bohème.", "ai-title": "Assistant style", "ai-intro": "Posez des questions sur le style, les trouvailles de brocante ou les combinaisons – dans n'importe quelle langue.", "ai-placeholder": "Demandez sur le style...", "ai-welcome": "Bonjour! Je suis l'assistant IA de KirppisStailaaja. Posez des questions sur le style! 👗✨", "social-tag": "Suivez le voyage", "social-title": "Retrouvez-nous sur les réseaux", "nav-galina": "Nicola", "nav-sisalto": "Contenu", "nav-ai": "Assistant IA", "nav-seuraa": "Suivre"}, "it": {"hero-tag": "Stilista da mercatino · Artista · Creatrice", "hero-h1": "Trova <em>il tuo stile</em> al mercatino delle pulci", "hero-subtitle": "Nicola trova, combina e crea look con oggetti da mercatino – con personalità, calore e stile bohémien.", "hero-btn1": "Chiedi alla stilista AI", "hero-btn2": "Scopri di più", "hero-deco": "Lo stile è una storia, non un prezzo.", "galina-quote": "Il mercatino delle pulci non riguarda il risparmio – riguarda il trovare. Ogni capo porta una storia, e io ti aiuto a scriverne una nuova.", "sec-tag": "Contenuto", "sec-title": "Cosa fa KirppisStailaaja", "fmt1-name": "Vestire una sconosciuta", "fmt1-desc": "Nicola porta un'ospite al mercatino delle pulci, crea un outfit completo e documenta la trasformazione.", "fmt2-name": "Mercatino & caffè", "fmt2-desc": "Formato leggero e spontaneo – girare i mercatini, parlare di scoperte e vita.", "fmt3-name": "Come abbinare?", "fmt3-desc": "Colori, strati, boho + moderno – Nicola insegna l'arte della combinazione.", "fmt4-name": "Trasformazione da mercatino", "fmt4-desc": "Prima e dopo – trovare un nuovo sé tra i tesori del mercatino.", "fmt5-name": "Vintage Stories", "fmt5-desc": "Le storie, la storia e la vita dietro i vecchi capi.", "fmt6-name": "L'occhio dell'artista del feltro", "fmt6-desc": "Una prospettiva di artista tessile su materiali, texture ed estetica bohémien.", "ai-title": "Assistente di stile", "ai-intro": "Chiedi qualsiasi cosa su stile, mercatino o abbinamenti – in qualsiasi lingua.", "ai-placeholder": "Chiedi dello stile...", "ai-welcome": "Ciao! Sono l'assistente AI di KirppisStailaaja. Chiedi di stile o mercatino! 👗✨", "social-tag": "Segui il viaggio", "social-title": "Trovaci sui social", "nav-galina": "Nicola", "nav-sisalto": "Contenuto", "nav-ai": "Assistente AI", "nav-seuraa": "Segui"}, "es": {"hero-tag": "Estilista de rastro · Artista · Creadora", "hero-h1": "Encuentra <em>tu estilo</em> en el rastro", "hero-subtitle": "Nicola encuentra, combina y estiliza hallazgos de rastro – con personalidad, calidez y estilo bohemio.", "hero-btn1": "Pregunta a la IA estilista", "hero-btn2": "Saber más", "hero-deco": "El estilo es una historia, no un precio.", "galina-quote": "El rastro no va de ahorrar dinero – va de encontrar algo. Cada prenda lleva una historia, y yo te ayudo a escribir una nueva.", "sec-tag": "Contenido", "sec-title": "Qué hace KirppisStailaaja", "fmt1-name": "Estilizar a una desconocida", "fmt1-desc": "Nicola lleva a una invitada al rastro, crea un conjunto completo y documenta la transformación.", "fmt2-name": "Rastro & café", "fmt2-desc": "Formato ligero y espontáneo – explorar rastros, hablar de hallazgos y de la vida.", "fmt3-name": "¿Cómo combinar?", "fmt3-desc": "Colores, capas, boho + moderno – Nicola enseña el arte de la combinación.", "fmt4-name": "Transformación de rastro", "fmt4-desc": "Antes y después – encontrar un nuevo yo entre los tesoros del rastro.", "fmt5-name": "Vintage Stories", "fmt5-desc": "Las historias, la historia y la vida detrás de las prendas antiguas.", "fmt6-name": "El ojo de la artista del fieltro", "fmt6-desc": "Una perspectiva de artista textil sobre materiales, texturas y estética bohemia.", "ai-title": "Asistente de estilo", "ai-intro": "Pregunta sobre estilo, hallazgos de rastro o combinaciones – en cualquier idioma.", "ai-placeholder": "Pregunta sobre el estilo...", "ai-welcome": "Hola! Soy el asistente IA de KirppisStailaaja. Pregunta sobre estilo o rastro! 👗✨", "social-tag": "Sigue el viaje", "social-title": "Encuéntranos en redes sociales", "nav-galina": "Nicola", "nav-sisalto": "Contenido", "nav-ai": "Asistente IA", "nav-seuraa": "Seguir"}, "ru": {"hero-tag": "Стилист блошиного рынка · Художник · Творец", "hero-h1": "Найди <em>свой стиль</em> на блошином рынке", "hero-subtitle": "Никола находит, сочетает и создаёт образы из находок блошиного рынка – с индивидуальностью, теплотой и богемным шармом.", "hero-btn1": "Спросить AI-стилиста", "hero-btn2": "Узнать больше", "hero-deco": "Стиль – это история, а не цена.", "galina-quote": "Блошиный рынок – это не об экономии, это об открытиях. Каждая вещь несёт историю, и я помогаю тебе написать новую.", "sec-tag": "Контент", "sec-title": "Что делает KirppisStailaaja", "fmt1-name": "Стилизуем незнакомца", "fmt1-desc": "Никола берёт гостя на блошиный рынок, создаёт полный образ и документирует преображение.", "fmt2-name": "Блошиный рынок & кофе", "fmt2-desc": "Лёгкий, спонтанный формат – гуляем по рынкам, говорим о находках и жизни.", "fmt3-name": "Как сочетать?", "fmt3-desc": "Цвета, слои, бохо + модерн – Никола учит искусству сочетания.", "fmt4-name": "Преображение с блошиного рынка", "fmt4-desc": "До и после – находим новое я среди сокровищ блошиного рынка.", "fmt5-name": "Vintage Stories", "fmt5-desc": "Истории, история и жизнь за старыми вещами.", "fmt6-name": "Взгляд мастера войлока", "fmt6-desc": "Перспектива текстильного художника на материалы, текстуры и богемную эстетику.", "ai-title": "Стиль-ассистент", "ai-intro": "Спрашивай о стиле, находках блошиного рынка или сочетаниях – на любом языке.", "ai-placeholder": "Спроси о стиле...", "ai-welcome": "Привет! Я AI-ассистент KirppisStailaaja. Спрашивай о стиле! 👗✨", "social-tag": "Следи за путешествием", "social-title": "Найди нас в соцсетях", "nav-galina": "Никола", "nav-sisalto": "Контент", "nav-ai": "AI-ассистент", "nav-seuraa": "Подписаться"}, "pt": {"hero-tag": "Estilista de feira · Artista · Criadora", "hero-h1": "Encontre <em>o seu estilo</em> na feira", "hero-subtitle": "Nicola encontra, combina e estiliza achados de feira – com personalidade, calor e estilo boémio.", "hero-btn1": "Perguntar à IA estilista", "hero-btn2": "Saber mais", "hero-deco": "O estilo é uma história, não um preço.", "galina-quote": "A feira não é sobre poupar dinheiro – é sobre descobrir. Cada peça carrega uma história, e eu ajudo-te a escrever uma nova.", "sec-tag": "Conteúdo", "sec-title": "O que faz a KirppisStailaaja", "fmt1-name": "Estilizar uma desconhecida", "fmt1-desc": "Nicola leva uma convidada à feira, cria um conjunto completo e documenta a transformação.", "fmt2-name": "Feira & café", "fmt2-desc": "Formato leve e espontâneo – explorar feiras, falar de achados e de vida.", "fmt3-name": "Como combinar?", "fmt3-desc": "Cores, camadas, boho + moderno – Nicola ensina a arte da combinação.", "fmt4-name": "Transformação de feira", "fmt4-desc": "Antes e depois – encontrar um novo eu entre os tesouros da feira.", "fmt5-name": "Vintage Stories", "fmt5-desc": "As histórias, a história e a vida por trás de roupas antigas.", "fmt6-name": "O olho da artista de feltro", "fmt6-desc": "Uma perspetiva de artista têxtil sobre materiais, texturas e estética boémia.", "ai-title": "Assistente de estilo", "ai-intro": "Pergunta sobre estilo, achados de feira ou combinações – em qualquer língua.", "ai-placeholder": "Pergunta sobre estilo...", "ai-welcome": "Olá! Sou o assistente IA da KirppisStailaaja. Pergunta sobre estilo! 👗✨", "social-tag": "Segue a viagem", "social-title": "Encontra-nos nas redes sociais", "nav-galina": "Nicola", "nav-sisalto": "Conteúdo", "nav-ai": "Assistente IA", "nav-seuraa": "Seguir"}, "nl": {"hero-tag": "Vlooienmarkt Stylist · Kunstenaar · Creator", "hero-h1": "Vind <em>jouw stijl</em> op de vlooienmarkt", "hero-subtitle": "Nicola vindt, combineert en stylt vlooienmarktvondsten – met persoonlijkheid, warmte en bohemien flair.", "hero-btn1": "Vraag de AI-stylist", "hero-btn2": "Meer lezen", "hero-deco": "Stijl is een verhaal, geen prijskaartje.", "galina-quote": "De vlooienmarkt gaat niet over besparen – het gaat over vinden. Elk kledingstuk draagt een verhaal, en ik help je een nieuw te schrijven.", "sec-tag": "Inhoud", "sec-title": "Wat KirppisStailaaja doet", "fmt1-name": "Een vreemde stylen", "fmt1-desc": "Nicola neemt een gast mee naar de vlooienmarkt, stelt een complete outfit samen en documenteert de transformatie.", "fmt2-name": "Vlooienmarkt & koffie", "fmt2-desc": "Licht, spontaan format – vlooienmarkten verkennen, praten over vondsten en het leven.", "fmt3-name": "Hoe combineer je?", "fmt3-desc": "Kleuren, lagen, boho + modern – Nicola leert de kunst van het combineren.", "fmt4-name": "Vlooienmarkt-transformatie", "fmt4-desc": "Voor en na – een nieuw zelf vinden tussen de schatten van de vlooienmarkt.", "fmt5-name": "Vintage Stories", "fmt5-desc": "De verhalen, de geschiedenis en het leven achter oude kleding.", "fmt6-name": "Het oog van de viltkunstenaar", "fmt6-desc": "Een textielkunstenaar over materialen, texturen en bohemien esthetiek.", "ai-title": "Stijlassistent", "ai-intro": "Vraag alles over stijl, vlooienmarktvondsten of combinaties – in elke taal.", "ai-placeholder": "Vraag over stijl...", "ai-welcome": "Hallo! Ik ben de KirppisStailaaja AI-assistent. Vraag me over stijl! 👗✨", "social-tag": "Volg de reis", "social-title": "Vind ons op sociale media", "nav-galina": "Nicola", "nav-sisalto": "Inhoud", "nav-ai": "AI-assistent", "nav-seuraa": "Volgen"}, "ja": {"hero-tag": "フリマスタイリスト · アーティスト · クリエイター", "hero-h1": "フリマで<em>あなたのスタイル</em>を見つけよう", "hero-subtitle": "ニコラがフリマの掘り出し物を見つけ、組み合わせ、スタイリングします – 個性的に、温かく、ボヘミアンに。", "hero-btn1": "AIスタイリストに聞く", "hero-btn2": "詳しく見る", "hero-deco": "スタイルは物語、値段ではない。", "galina-quote": "フリマは節約ではなく、発見のためにある。すべての服には物語があり、私が新しい物語を書くお手伝いをします。", "sec-tag": "コンテンツ", "sec-title": "KirppisStailaaja とは", "fmt1-name": "見知らぬ人をスタイリング", "fmt1-desc": "ニコラがゲストをフリマへ連れて行き、全身コーデを作り、変身を記録します。", "fmt2-name": "フリマ & コーヒー", "fmt2-desc": "軽くて自然なフォーマット – フリマを巡り、発見や人生について話す。", "fmt3-name": "どう組み合わせる?", "fmt3-desc": "色、レイヤー、ボヘミアン + モダン – ニコラがコーディネートの技を教えます。", "fmt4-name": "フリマ変身", "fmt4-desc": "Before & After – フリマの宝物から新しい自分を見つける。", "fmt5-name": "Vintage Stories", "fmt5-desc": "古い服の物語、歴史、そしてその裏にある人生。", "fmt6-name": "フェルトアーティストの目", "fmt6-desc": "テキスタイルアーティストが語る素材、テクスチャー、ボヘミアンの美学。", "ai-title": "スタイルアシスタント", "ai-intro": "スタイル、フリマの発見、コーディネートについて何でも聞いてください – どんな言語でも。", "ai-placeholder": "スタイルについて聞く...", "ai-welcome": "こんにちは！KirppisStailaaja AIアシスタントです。スタイルについて何でも聞いてください！👗✨", "social-tag": "旅をフォロー", "social-title": "SNSで見つけてください", "nav-galina": "ニコラ", "nav-sisalto": "コンテンツ", "nav-ai": "AIアシスタント", "nav-seuraa": "フォロー"}, "zh": {"hero-tag": "跳蚤市场造型师 · 艺术家 · 创作者", "hero-h1": "在跳蚤市场找到<em>你的风格</em>", "hero-subtitle": "Nicola 发现、搭配和造型跳蚤市场的宝贝 – 个性、温暖、波西米亚风格。", "hero-btn1": "询问AI造型师", "hero-btn2": "了解更多", "hero-deco": "风格是一个故事，不是价格。", "galina-quote": "逛跳蚤市场不是为了省钱，而是为了发现。每件衣服都承载着故事，我帮你写新的篇章。", "sec-tag": "内容", "sec-title": "KirppisStailaaja 做什么", "fmt1-name": "为陌生人造型", "fmt1-desc": "Nicola 带嘉宾去跳蚤市场，打造完整造型并记录变身过程。", "fmt2-name": "跳蚤市场 & 咖啡", "fmt2-desc": "轻松自然的形式 – 逛跳蚤市场，聊发现和生活。", "fmt3-name": "如何搭配？", "fmt3-desc": "颜色、层次、波西米亚 + 现代 – Nicola 教你搭配艺术。", "fmt4-name": "跳蚤市场变身", "fmt4-desc": "前后对比 – 在跳蚤市场的宝贝中找到新的自我。", "fmt5-name": "Vintage Stories", "fmt5-desc": "旧衣服背后的故事、历史和生活。", "fmt6-name": "毡艺师的眼光", "fmt6-desc": "纺织艺术家对材料、纹理和波西米亚美学的视角。", "ai-title": "风格助手", "ai-intro": "询问任何关于风格、跳蚤市场发现或搭配的问题 – 任何语言都可以。", "ai-placeholder": "询问风格...", "ai-welcome": "你好！我是 KirppisStailaaja AI 助手。询问风格或跳蚤市场！👗✨", "social-tag": "关注旅程", "social-title": "在社交媒体上找到我们", "nav-galina": "尼古拉", "nav-sisalto": "内容", "nav-ai": "AI助手", "nav-seuraa": "关注"}, "ar": {"hero-tag": "مصممة أزياء السوق القديم · فنانة · مبدعة", "hero-h1": "اعثري على <em>أسلوبك</em> في السوق القديم", "hero-subtitle": "نيكولا تجد وتجمع وتصمم من مقتنيات السوق القديم – بشخصية ودفء وروح بوهيمية.", "hero-btn1": "اسألي مصممة الذكاء الاصطناعي", "hero-btn2": "اعرفي المزيد", "hero-deco": "الأسلوب قصة، ليس سعراً.", "galina-quote": "السوق القديم ليس للتوفير بل للاكتشاف. كل قطعة ملابس تحمل قصة، وأنا أساعدك في كتابة قصة جديدة.", "sec-tag": "المحتوى", "sec-title": "ماذا تفعل KirppisStailaaja", "fmt1-name": "تصميم لغريبة", "fmt1-desc": "تأخذ نيكولا ضيفة إلى السوق القديم وتبني تنسيقاً كاملاً وتوثق التحول.", "fmt2-name": "السوق القديم والقهوة", "fmt2-desc": "تنسيق خفيف وعفوي – تجول في الأسواق القديمة والحديث عن المقتنيات والحياة.", "fmt3-name": "كيف تجمعين؟", "fmt3-desc": "الألوان والطبقات والبوهيمي + الحديث – نيكولا تعلم فن التنسيق.", "fmt4-name": "تحول السوق القديم", "fmt4-desc": "قبل وبعد – إيجاد ذات جديدة من كنوز السوق القديم.", "fmt5-name": "Vintage Stories", "fmt5-desc": "القصص والتاريخ والحياة وراء الملابس القديمة.", "fmt6-name": "عين فنانة اللباد", "fmt6-desc": "منظور فنانة نسيج حول المواد والملمس والجماليات البوهيمية.", "ai-title": "مساعد الأسلوب", "ai-intro": "اسألي عن الأسلوب أو مقتنيات السوق القديم – بأي لغة.", "ai-placeholder": "اسألي عن الأسلوب...", "ai-welcome": "مرحباً! أنا مساعد KirppisStailaaja الذكي. اسأل عن الأسلوب! 👗✨", "social-tag": "تابعي الرحلة", "social-title": "جدينا على التواصل الاجتماعي", "nav-galina": "نيكولا", "nav-sisalto": "المحتوى", "nav-ai": "مساعد الذكاء الاصطناعي", "nav-seuraa": "متابعة"}};
 
-function vaihdaKieli(lang) {
+function applyLang(lang) {
+  var t = TEKSTIT[lang] || TEKSTIT['en'];
   siteLang = lang;
-  if (lang === 'fi' || lang === 'en') {
-    applyDataAttrs(lang);
-    return;
-  }
 
-  var sel = document.getElementById('langSelect');
-  if (sel) { sel.disabled = true; sel.style.opacity = '0.4'; }
-
-  var langNames = {sv:'Swedish',de:'German',fr:'French',it:'Italian',es:'Spanish',
-    ru:'Russian',pt:'Portuguese',nl:'Dutch',ja:'Japanese',zh:'Chinese',ar:'Arabic'};
-  var targetLang = langNames[lang] || 'English';
-
-  // Kerätään käännettävät tekstit — VAIN tärkeimmät elementit
-  var sourceTexts = {
-    'hero-tag': document.querySelector('.hero-tag') ? document.querySelector('.hero-tag').getAttribute('data-en') : '',
-    'hero-h1': document.querySelector('.hero-h1') ? document.querySelector('.hero-h1').getAttribute('data-en') : '',
-    'hero-subtitle': document.querySelector('.hero-subtitle') ? document.querySelector('.hero-subtitle').getAttribute('data-en') : '',
-    'hero-deco': document.querySelector('.hero-decoration') ? document.querySelector('.hero-decoration').getAttribute('data-en') : '',
-    'hero-btn1': document.querySelector('.btn-primary') ? document.querySelector('.btn-primary').getAttribute('data-en') : '',
-    'hero-btn2': document.querySelector('.btn-outline') ? document.querySelector('.btn-outline').getAttribute('data-en') : '',
-    'galina-quote': document.querySelector('.galina-quote') ? document.querySelector('.galina-quote').getAttribute('data-en') : '',
-    'sec-tag': document.querySelector('.formats-section .section-tag') ? document.querySelector('.formats-section .section-tag').getAttribute('data-en') : '',
-    'sec-title': document.querySelector('.formats-section .section-title') ? document.querySelector('.formats-section .section-title').getAttribute('data-en') : '',
-    'ai-title': document.querySelector('.ai-section .section-title') ? document.querySelector('.ai-section .section-title').getAttribute('data-en') : '',
-    'ai-intro': document.querySelector('.ai-intro') ? document.querySelector('.ai-intro').getAttribute('data-en') : '',
-    'social-tag': document.querySelector('.social-text .section-tag') ? document.querySelector('.social-text .section-tag').getAttribute('data-en') : '',
-    'social-title': document.querySelector('.social-text .section-title') ? document.querySelector('.social-text .section-title').getAttribute('data-en') : '',
-    'fmt1-name': '', 'fmt1-desc': '', 'fmt2-name': '', 'fmt2-desc': '',
-    'fmt3-name': '', 'fmt3-desc': '', 'fmt4-name': '', 'fmt4-desc': '',
-    'fmt5-name': '', 'fmt5-desc': '', 'fmt6-name': '', 'fmt6-desc': ''
-  };
-
-  var cards = document.querySelectorAll('.format-card');
-  for (var n = 0; n < 6; n++) {
-    if (cards[n]) {
-      var nm = cards[n].querySelector('.format-name');
-      var dc = cards[n].querySelector('.format-desc');
-      if (nm) sourceTexts['fmt'+(n+1)+'-name'] = nm.getAttribute('data-en') || nm.textContent;
-      if (dc) sourceTexts['fmt'+(n+1)+'-desc'] = dc.getAttribute('data-en') || dc.textContent;
-    }
-  }
-
-  // Poista tyhjät
-  Object.keys(sourceTexts).forEach(function(k) {
-    if (!sourceTexts[k]) delete sourceTexts[k];
+  // Navigaatio
+  var navLinks = document.querySelectorAll('.nav-links a');
+  var navKeys = ['nav-galina', 'nav-sisalto', 'nav-ai', 'nav-seuraa'];
+  navLinks.forEach(function(a, i) {
+    if (navKeys[i] && t[navKeys[i]]) a.textContent = t[navKeys[i]];
   });
 
-  if (kaannosCache[lang]) {
-    applyTranslations(kaannosCache[lang]);
-    if (sel) { sel.disabled = false; sel.style.opacity = '1'; }
-    return;
-  }
-
-  fetch('/api/chat', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({
-      model: 'claude-sonnet-4-5',
-      max_tokens: 3000,
-      system: 'You are a translator. Translate all JSON string values from English to ' + targetLang + '. Keep HTML tags like <em> unchanged. Return ONLY a raw JSON object. No markdown, no code fences, no extra text.',
-      messages: [{role: 'user', content: JSON.stringify(sourceTexts)}]
-    })
-  })
-  .then(function(res) { return res.json(); })
-  .then(function(d) {
-    var raw = d.content.map(function(b) { return b.type === 'text' ? b.text : ''; }).join('').trim();
-    // Etsi JSON-objekti vastauksesta
-    var s = raw.indexOf('{');
-    var e = raw.lastIndexOf('}');
-    if (s === -1 || e === -1) throw new Error('No JSON found');
-    var parsed = JSON.parse(raw.substring(s, e + 1));
-    kaannosCache[lang] = parsed;
-    applyTranslations(parsed);
-    if (sel) { sel.disabled = false; sel.style.opacity = '1'; }
-  })
-  .catch(function() {
-    if (sel) { sel.disabled = false; sel.style.opacity = '1'; }
-    // Fallback: ei muuteta mitään, pysyy edellisessä kielessä
-  });
-}
-
-function applyTranslations(t) {
+  // Kaikki muut elementit
   var map = {
     'hero-tag': '.hero-tag',
     'hero-h1': '.hero-h1',
@@ -841,6 +757,8 @@ function applyTranslations(t) {
     var el = document.querySelector(map[key]);
     if (el && t[key]) el.innerHTML = t[key];
   });
+
+  // Format-kortit
   var cards = document.querySelectorAll('.format-card');
   for (var n = 0; n < 6; n++) {
     if (cards[n]) {
@@ -850,16 +768,22 @@ function applyTranslations(t) {
       if (dc && t['fmt'+(n+1)+'-desc']) dc.textContent = t['fmt'+(n+1)+'-desc'];
     }
   }
+
+  // AI
   var inp = document.querySelector('.ai-input');
-  if (inp) inp.placeholder = t['ai-placeholder'] || 'Ask about style...';
+  if (inp && t['ai-placeholder']) inp.placeholder = t['ai-placeholder'];
   var w = document.getElementById('aiWelcome');
   if (w && t['ai-welcome']) w.textContent = t['ai-welcome'];
+}
+
+function vaihdaKieli(lang) {
+  applyLang(lang);
 }
 
 function updateAiWelcome() {}
 
 document.addEventListener('DOMContentLoaded', function() {
-  applyDataAttrs('fi');
+  applyLang('fi');
 });
 // ── MOBIILINAVIGAATIO ───────────────────────────────────────────────
 function toggleMobileNav() {
