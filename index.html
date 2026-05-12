@@ -724,7 +724,6 @@ footer {
 let siteLang = 'fi';
 const kaannosCache = {};
 
-// FI ja EN: käytetään data-fi / data-en attribuutteja suoraan
 function applyDataAttrs(lang) {
   var attr = 'data-' + lang;
   document.querySelectorAll('[' + attr + ']').forEach(function(el) {
@@ -735,84 +734,126 @@ function applyDataAttrs(lang) {
   if (inp) inp.placeholder = lang === 'fi' ? 'Kysy tyylistä...' : 'Ask about style...';
   var w = document.getElementById('aiWelcome');
   if (w) w.textContent = lang === 'fi'
-    ? 'Hei! Olen KirppisStailaajan AI-assistentti. Kysy tyylistä, kirppislöydöistä tai yhdistelystä! 👗✨'
-    : 'Hi! I am the KirppisStailaaja AI assistant. Ask me anything about style or flea market finds! 👗✨';
+    ? 'Hei! Olen KirppisStailaajan AI-assistentti. Kysy tyylistä tai kirppislöydöistä! 👗✨'
+    : 'Hi! I am the KirppisStailaaja AI assistant. Ask about style or flea market finds! 👗✨';
 }
 
-// Muut kielet: käännetään API:lla
 function vaihdaKieli(lang) {
   siteLang = lang;
   if (lang === 'fi' || lang === 'en') {
     applyDataAttrs(lang);
     return;
   }
-  // Näytetään loading
+
   var sel = document.getElementById('langSelect');
   if (sel) { sel.disabled = true; sel.style.opacity = '0.4'; }
-
-  // Kerätään EN-tekstit käännettäväksi
-  var texts = {};
-  var els = [];
-  document.querySelectorAll('[data-en]').forEach(function(el, i) {
-    var key = 'k' + i;
-    texts[key] = el.getAttribute('data-en');
-    els.push({key: key, el: el});
-  });
 
   var langNames = {sv:'Swedish',de:'German',fr:'French',it:'Italian',es:'Spanish',
     ru:'Russian',pt:'Portuguese',nl:'Dutch',ja:'Japanese',zh:'Chinese',ar:'Arabic'};
   var targetLang = langNames[lang] || 'English';
 
-  // Jos cachessa jo on
+  // Kerätään käännettävät tekstit — VAIN tärkeimmät elementit
+  var sourceTexts = {
+    'hero-tag': document.querySelector('.hero-tag') ? document.querySelector('.hero-tag').getAttribute('data-en') : '',
+    'hero-h1': document.querySelector('.hero-h1') ? document.querySelector('.hero-h1').getAttribute('data-en') : '',
+    'hero-subtitle': document.querySelector('.hero-subtitle') ? document.querySelector('.hero-subtitle').getAttribute('data-en') : '',
+    'hero-deco': document.querySelector('.hero-decoration') ? document.querySelector('.hero-decoration').getAttribute('data-en') : '',
+    'hero-btn1': document.querySelector('.btn-primary') ? document.querySelector('.btn-primary').getAttribute('data-en') : '',
+    'hero-btn2': document.querySelector('.btn-outline') ? document.querySelector('.btn-outline').getAttribute('data-en') : '',
+    'galina-quote': document.querySelector('.galina-quote') ? document.querySelector('.galina-quote').getAttribute('data-en') : '',
+    'sec-tag': document.querySelector('.formats-section .section-tag') ? document.querySelector('.formats-section .section-tag').getAttribute('data-en') : '',
+    'sec-title': document.querySelector('.formats-section .section-title') ? document.querySelector('.formats-section .section-title').getAttribute('data-en') : '',
+    'ai-title': document.querySelector('.ai-section .section-title') ? document.querySelector('.ai-section .section-title').getAttribute('data-en') : '',
+    'ai-intro': document.querySelector('.ai-intro') ? document.querySelector('.ai-intro').getAttribute('data-en') : '',
+    'social-tag': document.querySelector('.social-text .section-tag') ? document.querySelector('.social-text .section-tag').getAttribute('data-en') : '',
+    'social-title': document.querySelector('.social-text .section-title') ? document.querySelector('.social-text .section-title').getAttribute('data-en') : '',
+    'fmt1-name': '', 'fmt1-desc': '', 'fmt2-name': '', 'fmt2-desc': '',
+    'fmt3-name': '', 'fmt3-desc': '', 'fmt4-name': '', 'fmt4-desc': '',
+    'fmt5-name': '', 'fmt5-desc': '', 'fmt6-name': '', 'fmt6-desc': ''
+  };
+
+  var cards = document.querySelectorAll('.format-card');
+  for (var n = 0; n < 6; n++) {
+    if (cards[n]) {
+      var nm = cards[n].querySelector('.format-name');
+      var dc = cards[n].querySelector('.format-desc');
+      if (nm) sourceTexts['fmt'+(n+1)+'-name'] = nm.getAttribute('data-en') || nm.textContent;
+      if (dc) sourceTexts['fmt'+(n+1)+'-desc'] = dc.getAttribute('data-en') || dc.textContent;
+    }
+  }
+
+  // Poista tyhjät
+  Object.keys(sourceTexts).forEach(function(k) {
+    if (!sourceTexts[k]) delete sourceTexts[k];
+  });
+
   if (kaannosCache[lang]) {
-    applyTranslations(kaannosCache[lang], els);
+    applyTranslations(kaannosCache[lang]);
     if (sel) { sel.disabled = false; sel.style.opacity = '1'; }
     return;
   }
 
   fetch('/api/chat', {
     method: 'POST',
-    headers: {'Content-Type':'application/json'},
+    headers: {'Content-Type': 'application/json'},
     body: JSON.stringify({
       model: 'claude-sonnet-4-5',
-      max_tokens: 2000,
-      system: 'Translate all JSON string values from English to ' + targetLang + '. Preserve HTML tags like <em>. Return ONLY a valid JSON object with identical keys. No markdown fences, no explanation.',
-      messages: [{role:'user', content: JSON.stringify(texts)}]
+      max_tokens: 3000,
+      system: 'You are a translator. Translate all JSON string values from English to ' + targetLang + '. Keep HTML tags like <em> unchanged. Return ONLY a raw JSON object. No markdown, no code fences, no extra text.',
+      messages: [{role: 'user', content: JSON.stringify(sourceTexts)}]
     })
   })
   .then(function(res) { return res.json(); })
   .then(function(d) {
-    var txt = d.content.map(function(b){ return b.type === 'text' ? b.text : ''; }).join('').trim();
-    // Poistetaan mahdolliset markdown-koodiblokki-merkit
-    if (txt.charAt(0) === '{') {
-      // OK, suoraan JSON
-    } else {
-      var start = txt.indexOf('{');
-      var end = txt.lastIndexOf('}');
-      if (start >= 0 && end > start) txt = txt.substring(start, end + 1);
-    }
-    var parsed = JSON.parse(txt);
+    var raw = d.content.map(function(b) { return b.type === 'text' ? b.text : ''; }).join('').trim();
+    // Etsi JSON-objekti vastauksesta
+    var s = raw.indexOf('{');
+    var e = raw.lastIndexOf('}');
+    if (s === -1 || e === -1) throw new Error('No JSON found');
+    var parsed = JSON.parse(raw.substring(s, e + 1));
     kaannosCache[lang] = parsed;
-    applyTranslations(parsed, els);
-  })
-  .catch(function(e) {
-    // Virhe — fallback EN
-    applyDataAttrs('en');
-  })
-  .finally(function() {
+    applyTranslations(parsed);
     if (sel) { sel.disabled = false; sel.style.opacity = '1'; }
+  })
+  .catch(function() {
+    if (sel) { sel.disabled = false; sel.style.opacity = '1'; }
+    // Fallback: ei muuteta mitään, pysyy edellisessä kielessä
   });
 }
 
-function applyTranslations(translations, els) {
-  els.forEach(function(item) {
-    var val = translations[item.key];
-    if (val) item.el.innerHTML = val;
+function applyTranslations(t) {
+  var map = {
+    'hero-tag': '.hero-tag',
+    'hero-h1': '.hero-h1',
+    'hero-subtitle': '.hero-subtitle',
+    'hero-deco': '.hero-decoration',
+    'hero-btn1': '.btn-primary',
+    'hero-btn2': '.btn-outline',
+    'galina-quote': '.galina-quote',
+    'sec-tag': '.formats-section .section-tag',
+    'sec-title': '.formats-section .section-title',
+    'ai-title': '.ai-section .section-title',
+    'ai-intro': '.ai-intro',
+    'social-tag': '.social-text .section-tag',
+    'social-title': '.social-text .section-title'
+  };
+  Object.keys(map).forEach(function(key) {
+    var el = document.querySelector(map[key]);
+    if (el && t[key]) el.innerHTML = t[key];
   });
+  var cards = document.querySelectorAll('.format-card');
+  for (var n = 0; n < 6; n++) {
+    if (cards[n]) {
+      var nm = cards[n].querySelector('.format-name');
+      var dc = cards[n].querySelector('.format-desc');
+      if (nm && t['fmt'+(n+1)+'-name']) nm.textContent = t['fmt'+(n+1)+'-name'];
+      if (dc && t['fmt'+(n+1)+'-desc']) dc.textContent = t['fmt'+(n+1)+'-desc'];
+    }
+  }
   var inp = document.querySelector('.ai-input');
-  if (inp) inp.placeholder = 'Ask about style...';
+  if (inp) inp.placeholder = t['ai-placeholder'] || 'Ask about style...';
   var w = document.getElementById('aiWelcome');
-  if (w) w.textContent = 'Hi! I am the KirppisStailaaja style assistant. Ask me anything! 👗✨';
+  if (w && t['ai-welcome']) w.textContent = t['ai-welcome'];
 }
 
 function updateAiWelcome() {}
