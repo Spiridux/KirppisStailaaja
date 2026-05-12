@@ -500,13 +500,20 @@ footer {
   .galina-section::before { font-size: 120px; top: 20px; left: 20px; }
   .formats-section { padding: 60px 28px; }
   .ai-section {
-    padding: 60px 28px 120px;
+    padding: 60px 28px 60px;
     grid-template-columns: 1fr;
   }
   .ai-section .section-header,
   .ai-section .ai-intro,
   .ai-section .ai-box { grid-column: 1; }
-  .ai-section-img { display: none; }
+  .ai-section-img {
+    grid-column: 1;
+    grid-row: auto;
+    margin-top: 40px;
+    height: 60vw;
+    max-height: 400px;
+  }
+  .ai-section-img img { object-position: center 20%; }
   .social-section { padding: 60px 28px; }
   footer { padding: 36px 28px; }
   .section-title { font-size: 28px; }
