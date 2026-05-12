@@ -159,7 +159,8 @@ nav {
 .hero-right {
   position: relative;
   background: var(--warm);
-  display: flex; align-items: flex-start;
+  display: flex; align-items: stretch;
+  min-height: 100vh;
 }
 .hero-img-placeholder {
   position: absolute; inset: 0;
@@ -464,7 +465,7 @@ footer {
   .nav-hamburger { display: block; }
   .hero { grid-template-columns: 1fr; min-height: auto; }
   .hero-left { padding: 100px 28px 48px; }
-  .hero-right { height: auto; }
+  .hero-right { min-height: 50vw; height: auto; }
   .hero-right img { width: 100%; height: auto; }
   .hero-decoration { left: 28px; }
   .galina-section { grid-template-columns: 1fr; padding: 60px 28px; gap: 40px; }
@@ -528,11 +529,13 @@ footer {
 
 /* ── BEHOLD HERO ── */
 .hero-behold {
-  overflow: hidden;
-  display: flex; align-items: flex-start;
+  overflow-y: auto;
+  display: block;
 }
 .hero-behold behold-widget {
+  display: block;
   width: 100%;
+  min-height: 400px;
 }
 </style>
 </head>
