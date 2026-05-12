@@ -62,3 +62,4 @@ Päivitä index.html:ssä social-icon-linkit kun profiilit luotu:
 - youtube.com/@kirppisstailaaja
 - facebook.com/kirppisstailaaja
 - threads.net/@kirppisstailaaja
+ 
