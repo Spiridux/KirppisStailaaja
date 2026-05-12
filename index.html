@@ -8,6 +8,8 @@
 <meta property="og:description" content="Löydä oma tyylisi kirppikseltä – Nicola"/>
 <meta property="og:image" content="/og-image.jpg"/>
 <title>KirppisStailaaja – Nicola</title>
+<link rel="icon" type="image/x-icon" href="/favicon.ico"/>
+<link rel="icon" type="image/png" href="/favicon.png" sizes="32x32"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&family=DM+Mono:wght@300&display=swap" rel="stylesheet"/>
 <style>
@@ -56,6 +58,15 @@ nav {
   backdrop-filter: blur(12px);
   border-bottom: 1px solid rgba(180,160,130,0.20);
   transition: padding 0.3s;
+}
+.nav-logo-img {
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  object-fit: cover;
+  vertical-align: middle;
+  margin-right: 10px;
+  display: inline-block;
+  position: relative; top: -1px;
 }
 .nav-logo {
   font-family: 'Playfair Display', serif;
@@ -468,7 +479,7 @@ footer {
 
 <!-- NAV -->
 <nav id="mainNav">
-  <a href="/" class="nav-logo">Kirppis<span>Stailaaja</span></a>
+  <a href="/" class="nav-logo"><img src="/logo.png" alt="" class="nav-logo-img"/>Kirppis<span>Stailaaja</span></a>
   <div class="nav-links">
     <a href="#galina" data-fi="Nicola" data-en="Nicola">Nicola</a>
     <a href="#formaatit" data-fi="Sisältö" data-en="Content">Sisältö</a>
