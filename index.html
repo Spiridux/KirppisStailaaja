@@ -585,6 +585,112 @@ footer {
   min-height: 400px;
   margin: 0 auto;
 }
+
+/* ── GDPR ── */
+.cookie-banner {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 500;
+  background: rgba(42,36,32,0.97);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid rgba(180,160,130,0.15);
+  padding: 20px 40px;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 24px; flex-wrap: wrap;
+  transform: translateY(100%);
+  transition: transform 0.4s ease;
+}
+.cookie-banner.visible { transform: translateY(0); }
+.cookie-text {
+  font-size: 13px; color: rgba(245,240,232,0.70);
+  line-height: 1.6; flex: 1; min-width: 200px;
+}
+.cookie-text a {
+  color: var(--gold); text-decoration: underline; cursor: pointer;
+}
+.cookie-btns { display: flex; gap: 10px; flex-shrink: 0; flex-wrap: wrap; }
+.cookie-btn-accept {
+  padding: 9px 20px;
+  background: var(--terracotta); border: none; border-radius: 2px;
+  color: #fff; font-family: 'DM Mono', monospace;
+  font-size: 11px; letter-spacing: 0.10em; text-transform: uppercase;
+  cursor: pointer; transition: background 0.2s;
+}
+.cookie-btn-accept:hover { background: var(--rust); }
+.cookie-btn-essential {
+  padding: 9px 20px;
+  background: transparent; border: 1px solid rgba(180,160,130,0.30);
+  border-radius: 2px; color: rgba(245,240,232,0.55);
+  font-family: 'DM Mono', monospace;
+  font-size: 11px; letter-spacing: 0.10em; text-transform: uppercase;
+  cursor: pointer; transition: all 0.2s;
+}
+.cookie-btn-essential:hover { border-color: var(--sand); color: var(--cream); }
+
+/* Tietosuoja-modaali */
+.privacy-overlay {
+  position: fixed; inset: 0; z-index: 600;
+  background: rgba(0,0,0,0.70);
+  display: none; align-items: center; justify-content: center;
+  backdrop-filter: blur(6px);
+}
+.privacy-overlay.open { display: flex; }
+.privacy-modal {
+  background: var(--cream);
+  border-radius: 4px;
+  width: min(92vw, 680px);
+  max-height: 80vh;
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+.privacy-header {
+  padding: 24px 28px 0;
+  display: flex; justify-content: space-between; align-items: center;
+  flex-shrink: 0;
+}
+.privacy-tabs {
+  display: flex; gap: 0;
+  padding: 16px 28px 0;
+  border-bottom: 1px solid var(--sand);
+  flex-shrink: 0;
+}
+.privacy-tab {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase;
+  padding: 8px 16px; cursor: pointer;
+  color: var(--smoke); background: none; border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px; transition: all 0.2s;
+}
+.privacy-tab.active {
+  color: var(--terracotta);
+  border-bottom-color: var(--terracotta);
+}
+.privacy-body {
+  overflow-y: auto; padding: 24px 28px 28px;
+  font-size: 14px; color: var(--charcoal); line-height: 1.75;
+}
+.privacy-body h3 {
+  font-family: 'Playfair Display', serif;
+  font-size: 17px; margin: 20px 0 8px; color: var(--bark);
+}
+.privacy-body h3:first-child { margin-top: 0; }
+.privacy-body p { margin-bottom: 10px; color: #555; }
+.privacy-body a { color: var(--terracotta); }
+.privacy-close {
+  background: none; border: none; cursor: pointer;
+  font-size: 20px; color: var(--smoke); padding: 4px 8px;
+  transition: color 0.2s; line-height: 1;
+}
+.privacy-close:hover { color: var(--charcoal); }
+.privacy-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 20px; color: var(--charcoal);
+}
+
+@media (max-width: 600px) {
+  .cookie-banner { padding: 16px 20px; }
+  .cookie-btns { width: 100%; }
+  .cookie-btn-accept, .cookie-btn-essential { flex: 1; text-align: center; }
+}
 </style>
 <script>
   (() => {
@@ -836,8 +942,11 @@ footer {
 <!-- FOOTER -->
 <footer>
   <div class="footer-logo">Kirppis<span>Stailaaja</span></div>
-  <div class="footer-copy" data-fi="© 2025 Nicola · kirppisstailaaja.com" data-en="© 2025 Nicola · kirppisstailaaja.com">
-    © 2025 Nicola · kirppisstailaaja.com
+  <div class="footer-copy">
+    © 2025 Nicola · kirppisstailaaja.com &nbsp;·&nbsp;
+    <a onclick="avaaPrivacy('seloste')" style="color:rgba(245,240,232,0.35);cursor:pointer;text-decoration:underline;">Tietosuoja</a>
+    &nbsp;·&nbsp;
+    <a onclick="avaaPrivacy('evastekaytanto')" style="color:rgba(245,240,232,0.35);cursor:pointer;text-decoration:underline;">Evästeet</a>
   </div>
 </footer>
 
@@ -913,6 +1022,7 @@ function applyLang(lang) {
 
 function vaihdaKieli(lang) {
   applyLang(lang);
+  paivitaGdprKieli(lang);
 }
 
 function updateAiWelcome() {}
@@ -1126,6 +1236,104 @@ const observer = new IntersectionObserver(entries => {
   entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
 }, { threshold: 0.12 });
 document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+// ── GDPR / TIETOSUOJA ──────────────────────────────────────────────
+const COOKIE_TEXTS = {"fi": {"text": "Käytämme evästeitä parantaaksemme käyttökokemusta. Google Fonts ja Behold-widget voivat tallentaa evästeitä. AI-keskustelut ja ladatut kuvat eivät tallennu palvelimillemme.", "link": "Lisätietoja evästekäytännöstä", "accept": "Hyväksy kaikki", "essential": "Vain välttämättömät", "footer-privacy": "Tietosuoja", "footer-cookies": "Evästeet", "modal-title": "Tietosuoja", "tab-seloste": "Tietosuojaseloste", "tab-evastekaytanto": "Evästekäytäntö"}, "en": {"text": "We use cookies to improve your experience. Google Fonts and the Behold widget may store cookies. AI conversations and uploaded images are not stored on our servers.", "link": "Learn more about our cookie policy", "accept": "Accept all", "essential": "Essential only", "footer-privacy": "Privacy", "footer-cookies": "Cookies", "modal-title": "Privacy", "tab-seloste": "Privacy Policy", "tab-evastekaytanto": "Cookie Policy"}, "sv": {"text": "Vi använder cookies för att förbättra din upplevelse. Google Fonts och Behold-widgeten kan lagra cookies. AI-konversationer och uppladdade bilder lagras inte på våra servrar.", "link": "Läs mer om vår cookiepolicy", "accept": "Acceptera alla", "essential": "Endast nödvändiga", "footer-privacy": "Integritet", "footer-cookies": "Cookies", "modal-title": "Integritet", "tab-seloste": "Integritetspolicy", "tab-evastekaytanto": "Cookiepolicy"}, "de": {"text": "Wir verwenden Cookies, um Ihre Erfahrung zu verbessern. Google Fonts und das Behold-Widget können Cookies speichern. KI-Gespräche und hochgeladene Bilder werden nicht auf unseren Servern gespeichert.", "link": "Mehr über unsere Cookie-Richtlinie", "accept": "Alle akzeptieren", "essential": "Nur notwendige", "footer-privacy": "Datenschutz", "footer-cookies": "Cookies", "modal-title": "Datenschutz", "tab-seloste": "Datenschutzerklärung", "tab-evastekaytanto": "Cookie-Richtlinie"}, "fr": {"text": "Nous utilisons des cookies pour améliorer votre expérience. Google Fonts et le widget Behold peuvent stocker des cookies. Les conversations IA et les images téléchargées ne sont pas stockées sur nos serveurs.", "link": "En savoir plus sur notre politique de cookies", "accept": "Tout accepter", "essential": "Essentiels uniquement", "footer-privacy": "Confidentialité", "footer-cookies": "Cookies", "modal-title": "Confidentialité", "tab-seloste": "Politique de confidentialité", "tab-evastekaytanto": "Politique de cookies"}, "it": {"text": "Utilizziamo i cookie per migliorare la tua esperienza. Google Fonts e il widget Behold possono memorizzare cookie. Le conversazioni AI e le immagini caricate non vengono salvate sui nostri server.", "link": "Ulteriori informazioni sulla nostra politica dei cookie", "accept": "Accetta tutto", "essential": "Solo essenziali", "footer-privacy": "Privacy", "footer-cookies": "Cookie", "modal-title": "Privacy", "tab-seloste": "Informativa sulla privacy", "tab-evastekaytanto": "Politica dei cookie"}, "es": {"text": "Usamos cookies para mejorar tu experiencia. Google Fonts y el widget Behold pueden almacenar cookies. Las conversaciones de IA y las imágenes cargadas no se almacenan en nuestros servidores.", "link": "Más información sobre nuestra política de cookies", "accept": "Aceptar todo", "essential": "Solo esenciales", "footer-privacy": "Privacidad", "footer-cookies": "Cookies", "modal-title": "Privacidad", "tab-seloste": "Política de privacidad", "tab-evastekaytanto": "Política de cookies"}, "ru": {"text": "Мы используем файлы cookie для улучшения вашего опыта. Google Fonts и виджет Behold могут сохранять cookie. Разговоры с ИИ и загруженные изображения не хранятся на наших серверах.", "link": "Подробнее о нашей политике cookie", "accept": "Принять все", "essential": "Только необходимые", "footer-privacy": "Конфиденциальность", "footer-cookies": "Cookies", "modal-title": "Конфиденциальность", "tab-seloste": "Политика конфиденциальности", "tab-evastekaytanto": "Политика cookie"}, "pt": {"text": "Usamos cookies para melhorar a sua experiência. O Google Fonts e o widget Behold podem armazenar cookies. As conversas de IA e as imagens carregadas não são guardadas nos nossos servidores.", "link": "Saiba mais sobre a nossa política de cookies", "accept": "Aceitar tudo", "essential": "Apenas essenciais", "footer-privacy": "Privacidade", "footer-cookies": "Cookies", "modal-title": "Privacidade", "tab-seloste": "Política de privacidade", "tab-evastekaytanto": "Política de cookies"}, "nl": {"text": "We gebruiken cookies om uw ervaring te verbeteren. Google Fonts en de Behold-widget kunnen cookies opslaan. AI-gesprekken en geüploade afbeeldingen worden niet opgeslagen op onze servers.", "link": "Meer informatie over ons cookiebeleid", "accept": "Alles accepteren", "essential": "Alleen noodzakelijke", "footer-privacy": "Privacy", "footer-cookies": "Cookies", "modal-title": "Privacy", "tab-seloste": "Privacybeleid", "tab-evastekaytanto": "Cookiebeleid"}, "ja": {"text": "私たちはクッキーを使用してエクスペリエンスを向上させます。Google FontsとBeholdウィジェットはクッキーを保存する場合があります。AI会話とアップロードされた画像はサーバーに保存されません。", "link": "クッキーポリシーの詳細", "accept": "すべて承認", "essential": "必須のみ", "footer-privacy": "プライバシー", "footer-cookies": "クッキー", "modal-title": "プライバシー", "tab-seloste": "プライバシーポリシー", "tab-evastekaytanto": "クッキーポリシー"}, "zh": {"text": "我们使用Cookie来改善您的体验。Google Fonts和Behold小部件可能会存储Cookie。AI对话和上传的图片不会存储在我们的服务器上。", "link": "了解更多关于我们的Cookie政策", "accept": "接受全部", "essential": "仅必要", "footer-privacy": "隐私", "footer-cookies": "Cookie", "modal-title": "隐私", "tab-seloste": "隐私政策", "tab-evastekaytanto": "Cookie政策"}, "ar": {"text": "نستخدم ملفات تعريف الارتباط لتحسين تجربتك. قد يخزن Google Fonts وأداة Behold ملفات تعريف الارتباط. لا يتم تخزين محادثات الذكاء الاصطناعي والصور المرفوعة على خوادمنا.", "link": "معرفة المزيد عن سياسة ملفات تعريف الارتباط", "accept": "قبول الكل", "essential": "الضرورية فقط", "footer-privacy": "الخصوصية", "footer-cookies": "ملفات تعريف الارتباط", "modal-title": "الخصوصية", "tab-seloste": "سياسة الخصوصية", "tab-evastekaytanto": "سياسة ملفات تعريف الارتباط"}};
+const PRIVACY_CONTENT = {"fi": {"seloste": "\n    <h3>Rekisterinpitäjä</h3>\n    <p>KirppisStailaaja / Nicola<br>kirppisstailaaja.com</p>\n    <h3>Mitä tietoja kerätään?</h3>\n    <p>Emme kerää tai tallenna henkilötietoja palvelimillemme. AI-tyyliassistentin keskustelut käsitellään reaaliaikaisesti eikä niitä tallenneta. Ladatut kuvat ovat ainoastaan selainistunnon aikaisessa muistissa.</p>\n    <h3>Kolmannen osapuolen palvelut</h3>\n    <p><strong>Anthropic (Claude AI):</strong> AI-tyyliassistentti käyttää Anthropicin API:a. <a href=\"https://www.anthropic.com/privacy\" target=\"_blank\">anthropic.com/privacy</a></p>\n    <p><strong>Behold.so:</strong> Instagram-feediä varten. <a href=\"https://behold.so/privacy\" target=\"_blank\">behold.so/privacy</a></p>\n    <p><strong>Google Fonts:</strong> Sivusto lataa fontteja Googlelta. <a href=\"https://policies.google.com/privacy\" target=\"_blank\">policies.google.com/privacy</a></p>\n    <h3>Käyttäjän oikeudet</h3>\n    <p>Sinulla on oikeus pyytää tietoja sinusta kerätystä datasta. Koska emme itse tallenna henkilötietoja, pyynnöt koskevat kolmansia osapuolia.</p>\n    <h3>Yhteydenotot</h3>\n    <p>Tietosuoja-asioissa ota yhteyttä Instagram- tai Facebook-viesteillä.</p>\n", "evastekaytanto": "\n    <h3>Mitä evästeet ovat?</h3>\n    <p>Evästeet ovat pieniä tekstitiedostoja, jotka tallennetaan selaimeesi sivuston toiminnan parantamiseksi.</p>\n    <h3>Välttämättömät evästeet</h3>\n    <p>Tallennnamme evästeasetuksesi paikallisesti selaimeesi, jotta banneria ei näytetä joka kerta.</p>\n    <h3>Kolmannen osapuolen evästeet</h3>\n    <p><strong>Google Fonts:</strong> Voi asettaa evästeitä fontteja ladattaessa.</p>\n    <p><strong>Behold.so:</strong> Instagram-feedi voi asettaa analytiikkaevästeitä.</p>\n    <h3>Evästeiden hallinta</h3>\n    <p>Voit hallita evästeitä selaimesi asetuksista tai klikkaamalla \"Vain välttämättömät\" alla.</p>\n"}, "en": {"seloste": "\n    <h3>Data Controller</h3>\n    <p>KirppisStailaaja / Nicola<br>kirppisstailaaja.com</p>\n    <h3>What data is collected?</h3>\n    <p>We do not collect or store personal data on our servers. AI style assistant conversations are processed in real time and not stored. Uploaded images exist only in your browser session memory.</p>\n    <h3>Third-party services</h3>\n    <p><strong>Anthropic (Claude AI):</strong> The AI style assistant uses Anthropic's API. <a href=\"https://www.anthropic.com/privacy\" target=\"_blank\">anthropic.com/privacy</a></p>\n    <p><strong>Behold.so:</strong> Used for the Instagram feed. <a href=\"https://behold.so/privacy\" target=\"_blank\">behold.so/privacy</a></p>\n    <p><strong>Google Fonts:</strong> Fonts are loaded from Google. <a href=\"https://policies.google.com/privacy\" target=\"_blank\">policies.google.com/privacy</a></p>\n    <h3>Your rights</h3>\n    <p>You have the right to request information about data collected about you. Since we do not store personal data ourselves, requests concern third parties.</p>\n    <h3>Contact</h3>\n    <p>For privacy matters, contact us via Instagram or Facebook messages.</p>\n", "evastekaytanto": "\n    <h3>What are cookies?</h3>\n    <p>Cookies are small text files stored in your browser to improve site functionality.</p>\n    <h3>Essential cookies</h3>\n    <p>We store your cookie preference locally in your browser so the banner is not shown every visit.</p>\n    <h3>Third-party cookies</h3>\n    <p><strong>Google Fonts:</strong> May set cookies when loading fonts.</p>\n    <p><strong>Behold.so:</strong> The Instagram feed widget may set analytics cookies.</p>\n    <h3>Managing cookies</h3>\n    <p>You can manage cookies in your browser settings or by clicking \"Essential only\" below.</p>\n"}, "sv": {"seloste": "\n    <h3>Personuppgiftsansvarig</h3>\n    <p>KirppisStailaaja / Nicola<br>kirppisstailaaja.com</p>\n    <h3>Vilka uppgifter samlas in?</h3>\n    <p>Vi samlar inte in eller lagrar personuppgifter på våra servrar. AI-stilassistentens konversationer behandlas i realtid och lagras inte. Uppladdade bilder finns bara i webbläsarens sessionsminne.</p>\n    <h3>Tredjepartstjänster</h3>\n    <p><strong>Anthropic (Claude AI):</strong> <a href=\"https://www.anthropic.com/privacy\" target=\"_blank\">anthropic.com/privacy</a></p>\n    <p><strong>Behold.so:</strong> <a href=\"https://behold.so/privacy\" target=\"_blank\">behold.so/privacy</a></p>\n    <p><strong>Google Fonts:</strong> <a href=\"https://policies.google.com/privacy\" target=\"_blank\">policies.google.com/privacy</a></p>\n    <h3>Dina rättigheter</h3>\n    <p>Du har rätt att begära information om insamlad data. Kontakta oss via Instagram eller Facebook.</p>\n", "evastekaytanto": "\n    <h3>Vad är cookies?</h3>\n    <p>Cookies är små textfiler som lagras i din webbläsare för att förbättra webbplatsen.</p>\n    <h3>Nödvändiga cookies</h3>\n    <p>Vi sparar ditt cookieval lokalt i webbläsaren så att bannern inte visas varje gång.</p>\n    <h3>Tredjepartscookies</h3>\n    <p><strong>Google Fonts</strong> och <strong>Behold.so</strong> kan sätta analyticscookies.</p>\n    <h3>Hantera cookies</h3>\n    <p>Hantera cookies i webbläsarens inställningar eller klicka \"Endast nödvändiga\".</p>\n"}, "de": {"seloste": "\n    <h3>Data Controller</h3>\n    <p>KirppisStailaaja / Nicola · kirppisstailaaja.com</p>\n    <h3>Data collected</h3>\n    <p>We do not store personal data. AI conversations are not stored. Uploaded images exist only in your browser session.</p>\n    <h3>Third parties</h3>\n    <p>Anthropic (Claude AI): <a href=\"https://www.anthropic.com/privacy\" target=\"_blank\">privacy policy</a><br>\n    Behold.so: <a href=\"https://behold.so/privacy\" target=\"_blank\">privacy policy</a><br>\n    Google Fonts: <a href=\"https://policies.google.com/privacy\" target=\"_blank\">privacy policy</a></p>\n    <h3>Contact</h3>\n    <p>Contact us via Instagram or Facebook for privacy matters.</p>\n", "evastekaytanto": "\n    <h3>Cookies</h3>\n    <p>We store your cookie preference locally. Google Fonts and Behold.so may set third-party cookies. Manage cookies in your browser settings.</p>\n"}, "fr": {"seloste": "\n    <h3>Data Controller</h3>\n    <p>KirppisStailaaja / Nicola · kirppisstailaaja.com</p>\n    <h3>Data collected</h3>\n    <p>We do not store personal data. AI conversations are not stored. Uploaded images exist only in your browser session.</p>\n    <h3>Third parties</h3>\n    <p>Anthropic (Claude AI): <a href=\"https://www.anthropic.com/privacy\" target=\"_blank\">privacy policy</a><br>\n    Behold.so: <a href=\"https://behold.so/privacy\" target=\"_blank\">privacy policy</a><br>\n    Google Fonts: <a href=\"https://policies.google.com/privacy\" target=\"_blank\">privacy policy</a></p>\n    <h3>Contact</h3>\n    <p>Contact us via Instagram or Facebook for privacy matters.</p>\n", "evastekaytanto": "\n    <h3>Cookies</h3>\n    <p>We store your cookie preference locally. Google Fonts and Behold.so may set third-party cookies. Manage cookies in your browser settings.</p>\n"}, "it": {"seloste": "\n    <h3>Data Controller</h3>\n    <p>KirppisStailaaja / Nicola · kirppisstailaaja.com</p>\n    <h3>Data collected</h3>\n    <p>We do not store personal data. AI conversations are not stored. Uploaded images exist only in your browser session.</p>\n    <h3>Third parties</h3>\n    <p>Anthropic (Claude AI): <a href=\"https://www.anthropic.com/privacy\" target=\"_blank\">privacy policy</a><br>\n    Behold.so: <a href=\"https://behold.so/privacy\" target=\"_blank\">privacy policy</a><br>\n    Google Fonts: <a href=\"https://policies.google.com/privacy\" target=\"_blank\">privacy policy</a></p>\n    <h3>Contact</h3>\n    <p>Contact us via Instagram or Facebook for privacy matters.</p>\n", "evastekaytanto": "\n    <h3>Cookies</h3>\n    <p>We store your cookie preference locally. Google Fonts and Behold.so may set third-party cookies. Manage cookies in your browser settings.</p>\n"}, "es": {"seloste": "\n    <h3>Data Controller</h3>\n    <p>KirppisStailaaja / Nicola · kirppisstailaaja.com</p>\n    <h3>Data collected</h3>\n    <p>We do not store personal data. AI conversations are not stored. Uploaded images exist only in your browser session.</p>\n    <h3>Third parties</h3>\n    <p>Anthropic (Claude AI): <a href=\"https://www.anthropic.com/privacy\" target=\"_blank\">privacy policy</a><br>\n    Behold.so: <a href=\"https://behold.so/privacy\" target=\"_blank\">privacy policy</a><br>\n    Google Fonts: <a href=\"https://policies.google.com/privacy\" target=\"_blank\">privacy policy</a></p>\n    <h3>Contact</h3>\n    <p>Contact us via Instagram or Facebook for privacy matters.</p>\n", "evastekaytanto": "\n    <h3>Cookies</h3>\n    <p>We store your cookie preference locally. Google Fonts and Behold.so may set third-party cookies. Manage cookies in your browser settings.</p>\n"}, "ru": {"seloste": "\n    <h3>Data Controller</h3>\n    <p>KirppisStailaaja / Nicola · kirppisstailaaja.com</p>\n    <h3>Data collected</h3>\n    <p>We do not store personal data. AI conversations are not stored. Uploaded images exist only in your browser session.</p>\n    <h3>Third parties</h3>\n    <p>Anthropic (Claude AI): <a href=\"https://www.anthropic.com/privacy\" target=\"_blank\">privacy policy</a><br>\n    Behold.so: <a href=\"https://behold.so/privacy\" target=\"_blank\">privacy policy</a><br>\n    Google Fonts: <a href=\"https://policies.google.com/privacy\" target=\"_blank\">privacy policy</a></p>\n    <h3>Contact</h3>\n    <p>Contact us via Instagram or Facebook for privacy matters.</p>\n", "evastekaytanto": "\n    <h3>Cookies</h3>\n    <p>We store your cookie preference locally. Google Fonts and Behold.so may set third-party cookies. Manage cookies in your browser settings.</p>\n"}, "pt": {"seloste": "\n    <h3>Data Controller</h3>\n    <p>KirppisStailaaja / Nicola · kirppisstailaaja.com</p>\n    <h3>Data collected</h3>\n    <p>We do not store personal data. AI conversations are not stored. Uploaded images exist only in your browser session.</p>\n    <h3>Third parties</h3>\n    <p>Anthropic (Claude AI): <a href=\"https://www.anthropic.com/privacy\" target=\"_blank\">privacy policy</a><br>\n    Behold.so: <a href=\"https://behold.so/privacy\" target=\"_blank\">privacy policy</a><br>\n    Google Fonts: <a href=\"https://policies.google.com/privacy\" target=\"_blank\">privacy policy</a></p>\n    <h3>Contact</h3>\n    <p>Contact us via Instagram or Facebook for privacy matters.</p>\n", "evastekaytanto": "\n    <h3>Cookies</h3>\n    <p>We store your cookie preference locally. Google Fonts and Behold.so may set third-party cookies. Manage cookies in your browser settings.</p>\n"}, "nl": {"seloste": "\n    <h3>Data Controller</h3>\n    <p>KirppisStailaaja / Nicola · kirppisstailaaja.com</p>\n    <h3>Data collected</h3>\n    <p>We do not store personal data. AI conversations are not stored. Uploaded images exist only in your browser session.</p>\n    <h3>Third parties</h3>\n    <p>Anthropic (Claude AI): <a href=\"https://www.anthropic.com/privacy\" target=\"_blank\">privacy policy</a><br>\n    Behold.so: <a href=\"https://behold.so/privacy\" target=\"_blank\">privacy policy</a><br>\n    Google Fonts: <a href=\"https://policies.google.com/privacy\" target=\"_blank\">privacy policy</a></p>\n    <h3>Contact</h3>\n    <p>Contact us via Instagram or Facebook for privacy matters.</p>\n", "evastekaytanto": "\n    <h3>Cookies</h3>\n    <p>We store your cookie preference locally. Google Fonts and Behold.so may set third-party cookies. Manage cookies in your browser settings.</p>\n"}, "ja": {"seloste": "\n    <h3>Data Controller</h3>\n    <p>KirppisStailaaja / Nicola · kirppisstailaaja.com</p>\n    <h3>Data collected</h3>\n    <p>We do not store personal data. AI conversations are not stored. Uploaded images exist only in your browser session.</p>\n    <h3>Third parties</h3>\n    <p>Anthropic (Claude AI): <a href=\"https://www.anthropic.com/privacy\" target=\"_blank\">privacy policy</a><br>\n    Behold.so: <a href=\"https://behold.so/privacy\" target=\"_blank\">privacy policy</a><br>\n    Google Fonts: <a href=\"https://policies.google.com/privacy\" target=\"_blank\">privacy policy</a></p>\n    <h3>Contact</h3>\n    <p>Contact us via Instagram or Facebook for privacy matters.</p>\n", "evastekaytanto": "\n    <h3>Cookies</h3>\n    <p>We store your cookie preference locally. Google Fonts and Behold.so may set third-party cookies. Manage cookies in your browser settings.</p>\n"}, "zh": {"seloste": "\n    <h3>Data Controller</h3>\n    <p>KirppisStailaaja / Nicola · kirppisstailaaja.com</p>\n    <h3>Data collected</h3>\n    <p>We do not store personal data. AI conversations are not stored. Uploaded images exist only in your browser session.</p>\n    <h3>Third parties</h3>\n    <p>Anthropic (Claude AI): <a href=\"https://www.anthropic.com/privacy\" target=\"_blank\">privacy policy</a><br>\n    Behold.so: <a href=\"https://behold.so/privacy\" target=\"_blank\">privacy policy</a><br>\n    Google Fonts: <a href=\"https://policies.google.com/privacy\" target=\"_blank\">privacy policy</a></p>\n    <h3>Contact</h3>\n    <p>Contact us via Instagram or Facebook for privacy matters.</p>\n", "evastekaytanto": "\n    <h3>Cookies</h3>\n    <p>We store your cookie preference locally. Google Fonts and Behold.so may set third-party cookies. Manage cookies in your browser settings.</p>\n"}, "ar": {"seloste": "\n    <h3>Data Controller</h3>\n    <p>KirppisStailaaja / Nicola · kirppisstailaaja.com</p>\n    <h3>Data collected</h3>\n    <p>We do not store personal data. AI conversations are not stored. Uploaded images exist only in your browser session.</p>\n    <h3>Third parties</h3>\n    <p>Anthropic (Claude AI): <a href=\"https://www.anthropic.com/privacy\" target=\"_blank\">privacy policy</a><br>\n    Behold.so: <a href=\"https://behold.so/privacy\" target=\"_blank\">privacy policy</a><br>\n    Google Fonts: <a href=\"https://policies.google.com/privacy\" target=\"_blank\">privacy policy</a></p>\n    <h3>Contact</h3>\n    <p>Contact us via Instagram or Facebook for privacy matters.</p>\n", "evastekaytanto": "\n    <h3>Cookies</h3>\n    <p>We store your cookie preference locally. Google Fonts and Behold.so may set third-party cookies. Manage cookies in your browser settings.</p>\n"}};
+
+function paivitaGdprKieli(lang) {
+  var t = COOKIE_TEXTS[lang] || COOKIE_TEXTS['en'];
+  var ct = document.querySelector('.cookie-text');
+  if (ct) ct.innerHTML = t.text + ' <a onclick="avaaPrivacy(\x27evastekaytanto\x27)">' + t.link + '</a>';
+  var btns = document.querySelectorAll('.cookie-btns button');
+  if (btns[0]) btns[0].textContent = t.essential;
+  if (btns[1]) btns[1].textContent = t.accept;
+  var fpLinks = document.querySelectorAll('footer a[onclick]');
+  fpLinks.forEach(function(a) {
+    var fn = a.getAttribute('onclick') || '';
+    if (fn.includes('seloste')) a.textContent = t['footer-privacy'];
+    if (fn.includes('evastekaytanto')) a.textContent = t['footer-cookies'];
+  });
+  var title = document.querySelector('.privacy-title');
+  if (title) title.textContent = t['modal-title'];
+  var tabs = document.querySelectorAll('.privacy-tab');
+  if (tabs[0]) tabs[0].textContent = t['tab-seloste'];
+  if (tabs[1]) tabs[1].textContent = t['tab-evastekaytanto'];
+}
+
+function naytaCookieBanner() {
+  var asetus = localStorage.getItem('cookieConsent');
+  if (!asetus) {
+    setTimeout(function() {
+      document.getElementById('cookieBanner').classList.add('visible');
+    }, 1000);
+  }
+}
+
+function hyvaksyEvasteeet() {
+  localStorage.setItem('cookieConsent', 'all');
+  document.getElementById('cookieBanner').classList.remove('visible');
+}
+
+function hylkaaEvasteeet() {
+  localStorage.setItem('cookieConsent', 'essential');
+  document.getElementById('cookieBanner').classList.remove('visible');
+}
+
+function avaaPrivacy(tab) {
+  document.getElementById('privacyOverlay').classList.add('open');
+  vaihdaTab(tab || 'seloste');
+}
+
+function suljePrivacy() {
+  document.getElementById('privacyOverlay').classList.remove('open');
+}
+
+function vaihdaTab(tab) {
+  var lang = siteLang || 'fi';
+  var pc = PRIVACY_CONTENT[lang] || PRIVACY_CONTENT['en'];
+  document.querySelectorAll('.privacy-tab').forEach(function(t) {
+    t.classList.toggle('active', t.id === 'tab-' + tab);
+  });
+  document.getElementById('privacyBody').innerHTML = pc[tab] || pc['seloste'] || '';
+}
+
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') suljePrivacy();
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+  naytaCookieBanner();
+  document.getElementById('privacyBody').innerHTML = (PRIVACY_CONTENT['fi'] || {})['seloste'] || '';
+});
 </script>
+
+<!-- EVÄSTE­BANNERI -->
+<div class="cookie-banner" id="cookieBanner">
+  <p class="cookie-text">
+    Käytämme evästeitä parantaaksemme käyttökokemusta. Google Fonts ja Behold-widget voivat tallentaa evästeitä. AI-keskustelut ja ladatut kuvat eivät tallennu palvelimillemme.
+    <a onclick="avaaPrivacy('evastekaytanto')">Lisätietoja evästekäytännöstä</a>
+  </p>
+  <div class="cookie-btns">
+    <button class="cookie-btn-essential" onclick="hylkaaEvasteeet()">Vain välttämättömät</button>
+    <button class="cookie-btn-accept" onclick="hyvaksyEvasteeet()">Hyväksy kaikki</button>
+  </div>
+</div>
+
+<!-- TIETOSUOJA­MODAALI -->
+<div class="privacy-overlay" id="privacyOverlay" onclick="if(event.target===this)suljePrivacy()">
+  <div class="privacy-modal">
+    <div class="privacy-header">
+      <span class="privacy-title">Tietosuoja</span>
+      <button class="privacy-close" onclick="suljePrivacy()">✕</button>
+    </div>
+    <div class="privacy-tabs">
+      <button class="privacy-tab active" onclick="vaihdaTab('seloste')" id="tab-seloste">Tietosuojaseloste</button>
+      <button class="privacy-tab" onclick="vaihdaTab('evastekaytanto')" id="tab-evastekaytanto">Evästekäytäntö</button>
+    </div>
+    <div class="privacy-body" id="privacyBody"></div>
+  </div>
+</div>
+
 </body>
 </html>
