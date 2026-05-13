@@ -944,9 +944,9 @@ footer {
   <div class="footer-logo">Kirppis<span>Stailaaja</span></div>
   <div class="footer-copy">
     © 2025 Nicola · kirppisstailaaja.com &nbsp;·&nbsp;
-    <a onclick="avaaPrivacy('seloste')" style="color:rgba(245,240,232,0.35);cursor:pointer;text-decoration:underline;">Tietosuoja</a>
+    <a id="footerPrivacyLink" onclick="avaaPrivacy('seloste')" style="color:rgba(245,240,232,0.35);cursor:pointer;text-decoration:underline;">Tietosuoja</a>
     &nbsp;·&nbsp;
-    <a onclick="avaaPrivacy('evastekaytanto')" style="color:rgba(245,240,232,0.35);cursor:pointer;text-decoration:underline;">Evästeet</a>
+    <a id="footerCookiesLink" onclick="avaaPrivacy('evastekaytanto')" style="color:rgba(245,240,232,0.35);cursor:pointer;text-decoration:underline;">Evästeet</a>
   </div>
 </footer>
 
@@ -1248,12 +1248,10 @@ function paivitaGdprKieli(lang) {
   var btns = document.querySelectorAll('.cookie-btns button');
   if (btns[0]) btns[0].textContent = t.essential;
   if (btns[1]) btns[1].textContent = t.accept;
-  var fpLinks = document.querySelectorAll('footer a[onclick]');
-  fpLinks.forEach(function(a) {
-    var fn = a.getAttribute('onclick') || '';
-    if (fn.includes('seloste')) a.textContent = t['footer-privacy'];
-    if (fn.includes('evastekaytanto')) a.textContent = t['footer-cookies'];
-  });
+  var fpPrivacy = document.getElementById('footerPrivacyLink');
+  var fpCookies = document.getElementById('footerCookiesLink');
+  if (fpPrivacy) fpPrivacy.textContent = t['footer-privacy'];
+  if (fpCookies) fpCookies.textContent = t['footer-cookies'];
   var title = document.querySelector('.privacy-title');
   if (title) title.textContent = t['modal-title'];
   var tabs = document.querySelectorAll('.privacy-tab');
